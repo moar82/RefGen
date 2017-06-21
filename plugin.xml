@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+
+   <extension point="org.eclipse.ui.views">
+      <category
+            name="Refactor"
+            id="RefACo">
+      </category>
+      <view
+            category="RefACo"
+            class="refaco.views.CodeSmellTableView"
+            icon="icons/main.png"
+            id="refaco.views.CodeSmellTableView"
+            name="Code Smell">
+      </view>
+      <view
+            category="RefACo"
+            class="refaco.views.RefactoringListTableView"
+            icon="icons/main.png"
+            id="refaco.views.RefactoringListTableView"
+            name="Refactoring Sequence">
+      </view>
+      
+   </extension>
+   
+   <extension point="org.eclipse.ui.perspectiveExtensions">
+      <perspectiveExtension
+            targetID="org.eclipse.jdt.ui.JavaPerspective">
+         <view
+               id="refaco.views.TableView"
+               ratio="0.5"
+               relationship="right"
+               relative="org.eclipse.ui.views.ProblemView">
+         </view>
+      </perspectiveExtension>
+   </extension>
+   
+   <extension point="org.eclipse.help.contexts">
+      <contexts
+            file="contexts.xml">
+      </contexts>
+   </extension>
+   
+   <extension point="org.eclipse.ui.commands">
+   		<command name="Analize"
+   			description="Analize the project selected finding code smells"
+   			id="refaco.command.analize"/>
+   		<command name="ShowRefactoringOpps"
+   			description="Show Refactoring opportunities list"
+   			id="refaco.command.showRefactoringOpps"/>
+   		<command name="ApplyRefactoringList"
+   			description="Apply the sequence of refactoring selected"
+   			id="refaco.command.applyRefactoring"/>
+   		<command name="SelectAll"
+   			description="Select / Deselect all the implemented refactorings"
+   			id="refaco.command.selectAll"/>
+   </extension>
+   
+   <extension point="org.eclipse.ui.handlers">
+   		<hanlder class="refaco.handlers.CodeSmellHandler"
+   		commandId="refaco.command.analize"/>
+   		<hanlder class="refaco.handlers.RefactoringOppsHandler"
+   		commandId="refaco.command.showRefactoringOpps"/>
+   		<hanlder class="refaco.handlers.ApplyRefactoringHandler"
+   		commandId="refaco.command.applyRefactoring"/>
+   		<hanlder class="refaco.handlers.SelectionHandler"
+   		commandId="refaco.command.selectAll"/>
+   </extension>
+   
+   <extension point="org.eclipse.ui.menus">
+   	  <menuContribution locationURI="toolbar:org.eclipse.ui.main.toolbar?after=additions">
+         <toolbar id="refaco.toolbars.refacoToolbar">
+            <command
+                  commandId="refaco.command.analize"
+                  icon="icons/analyze.png"
+                  tooltip="Analyze Code Smells"
+                  id="refaco.toolbars.Analize">
+            </command>
+         </toolbar>
+      </menuContribution>
+      <menuContribution locationURI="toolbar:refaco.views.CodeSmellTableView?after=additions">
+            <command
+                  commandId="refaco.command.showRefactoringOpps"
+                  icon="icons/ant.png"
+                  tooltip="Show Refactoring opportunities list"
+                  id="refaco.toolbars.ShowRefactoringList">
+            </command>
+      </menuContribution>
+      <menuContribution locationURI="toolbar:refaco.views.RefactoringListTableView?after=additions">
+            <command
+                  commandId="refaco.command.applyRefactoring"
+                  icon="icons/apply.png"
+                  tooltip="Apply refactoring sequence"
+                  id="refaco.toolbars.ApplyRefactoring">
+            </command>
+      </menuContribution>
+      <menuContribution locationURI="toolbar:refaco.views.RefactoringListTableView?after=additions">
+            <command
+                  commandId="refaco.command.selectAll"
+                  icon="icons/selectall.png"
+                  tooltip="Select / Deselect all the implemented refactorings"
+                  id="refaco.toolbars.SelectAllRefactoring">
+            </command>
+      </menuContribution>
+      
+      <menuContribution locationURI="popup:org.eclipse.ui.navigator.ProjectExplorer#PopupMenu?after=additions">
+     	<menu
+           id="contextmenuRefaco"
+           label="RefACo">
+     	</menu>
+  	 </menuContribution>
+	  <menuContribution
+	        locationURI="popup:contextmenuRefaco?after=additions">
+		     <command
+                  commandId="refaco.command.analize"
+                  icon="icons/analyze.png"
+                  label="Analyze Code Smells"
+	           	  style="push">
+            </command>
+	     
+	  </menuContribution>
+      
+   </extension>
+
+</plugin>
