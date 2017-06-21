@@ -112,30 +112,18 @@ public class ExtractClassRefactoring extends refaco.refactorings.Refactoring {
 			throw new RefactoringException("Method name format exception");
 		}
 
-		String fieldNames;
 		final String nameMet =  methodName;
 
 		ASTParser parser = ASTParser.newParser(AST.JLS8);
 	    parser.setKind(ASTParser.K_COMPILATION_UNIT);
 	    parser.setSource(classCU);
 	    final CompilationUnit cu = (CompilationUnit) parser.createAST(null);
-	    //getting information for fields
 	    
-	    List<String>fil = new ArrayList<String>();
+	    //getting information for fields 
     	List<String>expr = new ArrayList<String>();
-        Set<String> intersect = new HashSet<String>(fil);
 
 	    cu.accept(new ASTVisitor() {
 
-	    	String s; 	
-	    			public boolean visit(FieldDeclaration fd){
-						Object o = fd.fragments().get(0);
-						if(o instanceof VariableDeclarationFragment){
-							 s = ((VariableDeclarationFragment) o).getName().toString();
-							fil.add(s);
-						}
-						return false;
-					}
             public boolean visit(MethodDeclaration node) {
                 if (node.getName().getIdentifier().equals(nameMet)) {
                     Block block = node.getBody();
@@ -144,13 +132,7 @@ public class ExtractClassRefactoring extends refaco.refactorings.Refactoring {
                         public boolean visit(MethodInvocation node) {                        	
                             Expression expression = node.getExpression();                                                   
                             if (expression != null ) {
-                                expr.add(expression.toString());
-                                intersect.retainAll(expr);
-                                System.out.println("Expr: " + expr);
-                                ITypeBinding typeBinding = expression.resolveTypeBinding();
-                                if (typeBinding != null) {
-                                  // System.out.println("Type: " + typeBinding.getName());
-                                }
+                                expr.add(expression.toString());                        
                             }
                             return true;
                         }
@@ -165,12 +147,12 @@ public class ExtractClassRefactoring extends refaco.refactorings.Refactoring {
 				
 				
 				IType typeSource = classCU.getType(classSourceName);
+				
 				// Get the name of all the fields
 				List<String> nameFields = getRefactoringData().getFields();
 
 				if (typeSource != null) {
-					// Get the start and end position
-				
+					
 					// Initialize the refactoring descriptor
 					RefactoringContribution contribution = RefactoringCore
 							.getRefactoringContribution(IJavaRefactorings.EXTRACT_CLASS);
@@ -183,15 +165,17 @@ public class ExtractClassRefactoring extends refaco.refactorings.Refactoring {
 					descriptor.setPackage(classPackage.getElementName());
 					descriptor.setType(typeSource);
 					boolean atLeastOne = false;
+					
+					//this will allow the move of the method
 					boolean done = false;
+					
 					// Set the fields in the descriptor
 					Field[] allFields = ExtractClassDescriptor.getFields(typeSource);
-					Field[] finalFields = null;
+					
 					for(int i =0; i < allFields.length; i++){
 						nameFields.add(allFields[i].getClass().getName());
 						if(expr.contains(allFields[i].getFieldName())){
-							System.out.println(allFields[i].getFieldName());
-							(allFields[i]).setCreateField(true);//must be true
+							(allFields[i]).setCreateField(true);
 							(allFields[i]).isCreateField();
 														 
 							atLeastOne = true;
@@ -202,10 +186,11 @@ public class ExtractClassRefactoring extends refaco.refactorings.Refactoring {
 					if(atLeastOne){
 											
 					descriptor.setFields(allFields);
-					// Create the classes needed for apply the refactoring
+										
 					Refactoring refactoring = new org.eclipse.jdt.internal.corext.refactoring.structure.ExtractClassRefactoring(descriptor);
-				//	ExtractClassWizard wizard = new ExtractClassWizard(descriptor, refactoring);
-					//RefactoringWizardOpenOperation op = new RefactoringWizardOpenOperation(wizard);
+
+					
+					// Execute the refactoring
 					IProgressMonitor monitor = new NullProgressMonitor();
 					refactoring.checkInitialConditions(monitor);
 					RefactoringStatus status = new RefactoringStatus();
@@ -215,8 +200,7 @@ public class ExtractClassRefactoring extends refaco.refactorings.Refactoring {
 					change.initializeValidationData(monitor);
 					change.perform(monitor);
 					done = true;
-										// Execute the refactoring
-					//op.run(Display.getDefault().getActiveShell(), "");
+										
 					}else{
 						throw new RefactoringException("Fields doesn't exist");
 					}
@@ -237,7 +221,6 @@ public class ExtractClassRefactoring extends refaco.refactorings.Refactoring {
 						}
 						IMethod method = null;
 						try {
-								//for(IMethod method : methods){
 							if (project.isNatureEnabled("org.eclipse.jdt.core.javanature")) {
 								
 							
@@ -256,19 +239,15 @@ public class ExtractClassRefactoring extends refaco.refactorings.Refactoring {
 										// Create the classes needed for apply the refactoring
 										MoveInstanceMethodProcessor processor = new MoveInstanceMethodProcessor(method, new CodeGenerationSettings());
 										Refactoring refactoring = new ProcessorBasedRefactoring(processor);
-										// Set the target class
-										//refactoring.checkInitialConditions(null);
+										
+										// Execute the refactoring
 										IProgressMonitor monitorM = new NullProgressMonitor();
 										refactoring.checkInitialConditions(monitorM);
 										IVariableBinding[] targets = processor.getPossibleTargets();
 										IVariableBinding targetArgument = null;
 									
-										for(IVariableBinding target: targets){
-											//System.out.println("kajik");
-											//	System.out.println(target + "------" +descriptor.getClassName()+"***********"+ method.getElementName());
-
+										for(IVariableBinding target: targets){						
 										 if (target.getType().getName().equals(descriptor.getClassName())){
-												//System.out.println(target + "------" +descriptor.getClassName()+ "------" + method.getElementName());
 												processor.setTarget(target);
 												targetArgument = target;
 												break;
@@ -284,11 +263,9 @@ public class ExtractClassRefactoring extends refaco.refactorings.Refactoring {
 											MoveMethodDescriptor descriptorM = (MoveMethodDescriptor) contributionM.createDescriptor();
 											RefactoringStatus status = new RefactoringStatus();
 											refactoring.checkFinalConditions(monitorM);
-											//status = new RefactoringStatus();
 											Change change = refactoring.createChange(monitorM);
 											change.initializeValidationData(monitorM);
 											change.perform(monitorM);
-											//in visual studio code the part missing
 										}
 										else{
 											BufferedWriter writer = null;
@@ -309,7 +286,6 @@ public class ExtractClassRefactoring extends refaco.refactorings.Refactoring {
 									            }
 									        }
 									    }
-											//TODO LOG ERROR OF REFACTORING THAT COULD NOT BE APPLIED
 											
 									} else {
 										throw new RefactoringException("Method not exist");
