@@ -61,6 +61,7 @@ import org.eclipse.ui.progress.IProgressService;
 import refaco.RefactoringData;
 import refaco.RefactoringOperationStatus;
 import refaco.exceptions.RefactoringException;
+import refaco.utils.SaveInTextFile;
 
 /**
 * Move Method refactoring
@@ -68,8 +69,10 @@ import refaco.exceptions.RefactoringException;
 */
 public class MoveMethodRefactoring extends refaco.refactorings.Refactoring{
 	
+	SaveInTextFile saved;
 	public MoveMethodRefactoring(RefactoringData _refactoringData, String _projectName) {
 		super(_refactoringData, _projectName);
+		saved = new SaveInTextFile(_refactoringData, _projectName);
 	}
 
 	public void apply() throws RefactoringException {
@@ -173,25 +176,8 @@ public class MoveMethodRefactoring extends refaco.refactorings.Refactoring{
 							change.perform(monitor);
 							//in visual studio code the part missing
 						}
-						else{
-							BufferedWriter writer = null;
-					        try {
-					            //create a temporary file
-					            String timeLogName = "refactoring_summarize";
-					            File logFile = new File(project.getLocation() + timeLogName);
-					          
-					            writer = new BufferedWriter(new FileWriter(logFile));
-					            writer.write("refactoring not applied, targerts null");
-					        } catch (Exception e) {
-					            e.printStackTrace();
-					        } finally {
-					            try {
-					                // Close the writer regardless of what happens...
-					                writer.close();
-					            } catch (Exception e) {
-					            }
-					        }
-					    }
+						else{saved.saving("MoveMethodRefactoring", "cannot be moved cause the argument is null or"
+								+ " is a inner class method.");}
 							//TODO LOG ERROR OF REFACTORING THAT COULD NOT BE APPLIED
 							
 					} else {
