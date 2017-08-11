@@ -1,0 +1,22 @@
+#put a list separated by comma but without space
+detectedAntipatterns=LazyClass,LongParameterList,SpaghettiCode,Blob,SpeculativeGenerality
+#LazyClass,LongParameterList,SpaghettiCode,LargeClassLowCohesion,Blob,SpeculativeGenerality
+#LazyClass,LongParameterList,SpaghettiCode,SpeculativeGenerality
+fitnessFunction_class=modelManager.fitnessFunctions.earmoFitness
+steps=1
+#initialSizeRefactoringSequence =0
+qmood = 0
+generateFromSourceCode=1
+##WARNING taskFile only admits relative paths
+##i.e., just the name of the file in the working folder
+#taskFile = mylyn-contextShort.csv
+#generateAllRefOpp=1
+#copyRelevantDirs=1
+initialcountAntipatterns=1
+#pathOfRefactoringOPIds=ro_idsGant
+###two options:
+#####modelManagerSCC.Schemes.SCCRefactoringSequence
+######modelManagerSCC.Schemes.LiuRefactoringSequence
+refactoringScheme_class=modelManagerSCC.Schemes.LiuRefactoringSequence
+#necessary for display progress
+printStepIteration=1
