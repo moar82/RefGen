@@ -154,9 +154,9 @@ public class RefactoringData {
 		else {
 			RefactoringType res;
 			switch (s) {
-			case "Collapse Hierarchy (manual)":
+			case "Collapse Hierarchy":
 				res = RefactoringType.COLLAPSE_HIERARCHY; break;
-			case "Inline Class (manual)":
+			case "Inline Class":
 				res = RefactoringType.INLINE_CLASS; break;
 			case "Introduce Parameter Object":
 				res = RefactoringType.INTRODUCE_PARAMETER_OBJECT; break;
@@ -198,6 +198,10 @@ public class RefactoringData {
 			case EXTRACT_CLASS:
 				return true;
 			case EXTRACT_METHOD:
+				return true;
+			case INLINE_CLASS:
+				return true;
+			case COLLAPSE_HIERARCHY:
 				return true;
 			default:
 				return false;

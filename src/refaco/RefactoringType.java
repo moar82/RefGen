@@ -5,7 +5,7 @@ package refaco;
  *
  */
 public enum RefactoringType {
-	COLLAPSE_HIERARCHY ("Collapse Hierarchy (manual)"),
+	COLLAPSE_HIERARCHY ("Collapse Hierarchy"),
 	INLINE_CLASS ("Inline Class"),
 	INTRODUCE_PARAMETER_OBJECT ("Introduce Parameter Object"),
 	EXTRACT_METHOD ("Extract Method"),

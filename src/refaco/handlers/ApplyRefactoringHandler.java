@@ -88,7 +88,7 @@ public class ApplyRefactoringHandler extends AbstractHandler {
 			IRunnableWithProgress runnable = new IRunnableWithProgress() {
 				public void run(IProgressMonitor monitor) throws InterruptedException {
 					int totalUnitsOfWork = selectedRefactoring.size();
-					monitor.beginTask("Running RefACo", totalUnitsOfWork);
+					monitor.beginTask("Running RefGen", totalUnitsOfWork);
 					int cont = 1;
 					for (RefactoringData r : selectedRefactoring) {
 						monitor.subTask("Apply Code refactoring " + cont + " de " + totalUnitsOfWork);
@@ -170,13 +170,6 @@ public class ApplyRefactoringHandler extends AbstractHandler {
 //		code.execute(null);
 		
 		return null;
-	}
-	public void keyReleased(KeyEvent t) {
-	    AWTKeyStroke ak = AWTKeyStroke.getAWTKeyStrokeForEvent(t);
-	    if(ak.equals(AWTKeyStroke.getAWTKeyStroke(KeyEvent.VK_Z,InputEvent.CTRL_DOWN_MASK)))
-        {
-          System.out.println("lolololo");
-        }
 	}
 	/** This method apply a refactoring operation 
 	 * 
