@@ -10,7 +10,6 @@ import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.handlers.HandlerUtil;
 
 import refaco.RefactoringData;
-import refaco.RefactoringType;
 import refaco.RowData;
 import refaco.views.CodeSmellTableView;
 import refaco.views.RefactoringListTableView;

@@ -1,33 +1,23 @@
 package refaco.handlers;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.URL;
 import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Properties;
-import java.util.stream.Collectors;
-
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
-import org.eclipse.core.resources.IFolder;
-import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.FileLocator;
-import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Platform;
@@ -36,6 +26,7 @@ import org.eclipse.core.runtime.jobs.IJobChangeEvent;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.core.runtime.jobs.JobChangeAdapter;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
@@ -43,6 +34,7 @@ import org.eclipse.ui.handlers.HandlerUtil;
 import refaco.ProjectData;
 import refaco.RowData;
 import refaco.StreamReader;
+import refaco.TitleAreaDialogs.SourceFolderTitleAreaDialog;
 import refaco.exceptions.*;
 import refaco.views.CodeSmellTableView;
 
@@ -113,8 +105,31 @@ public class CodeSmellHandler extends AbstractHandler {
 		try {
 			// Get the tableview (initialize the View with the previous project
 			// selected by the user)
+			
+			SourceFolderTitleAreaDialog myDialog = new SourceFolderTitleAreaDialog(Display.getCurrent().getActiveShell());
 			CodeSmellTableView view = initSelectionView(event);
 
+			String src = "/src/";
+			String alternative = null;
+			File varTmpDir = new File(projectData.getPath()+ src);
+			if (varTmpDir.exists()==false){
+				/*IWorkbenchWindow window = null;
+				try {
+					window = HandlerUtil.getActiveWorkbenchWindowChecked(event);
+				} catch (ExecutionException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				//final Shell shell = new Shell(); we already have a shell
+				SourceFolderTitleAreaDialog dialog = new SourceFolderTitleAreaDialog(Display.getCurrent().getActiveShell());*/
+				alternative = new String(myDialog.open());
+				if (alternative!=null){
+					src = new String("/"+alternative+"/");
+				}
+			}
+			
+			final String  javasrc = src;
+			
 			// Job for execute ReACO in background
 			Job job = new Job("RefACo") {
 				protected IStatus run(IProgressMonitor monitor) {
@@ -122,7 +137,7 @@ public class CodeSmellHandler extends AbstractHandler {
 						int totalUnitsOfWork = 250;
 						monitor.beginTask("Running RefACo", totalUnitsOfWork);
 						// Call to execute SACO
-						executeReACO(view.getProjectData(), monitor);
+						executeReACO(view.getProjectData(), monitor, javasrc);
 
 						// read the results from file
 						monitor.subTask("Processing the results..");
@@ -223,25 +238,43 @@ public class CodeSmellHandler extends AbstractHandler {
 	 * @param path 			Path to the project
 	 * @param targetName 	Name of the project
 	 * @param monitor		Task monitor
+	 * @param event 
 	 * @throws ReACOExecutionException
 	 */
-	public void executeReACO(ProjectData projectData, IProgressMonitor monitor) throws ReACOExecutionException {
+	public void executeReACO(ProjectData projectData, IProgressMonitor monitor,String src ) throws ReACOExecutionException {
 
 		try {
 			monitor.subTask("Preparing ReACO files...");
-			
 			// Check if analyze a package or the full project
 			String pathToAnalyze;
 			/*RMA here we assume that the source folder is named src 
 			which is not necessarily true*/
+			//String src = "/src/";
+			String alternative = null;
+			/*File varTmpDir = new File(projectData.getPath()+ src);
+			if (varTmpDir.exists()==false){
+				IWorkbenchWindow window = null;
+				try {
+					window = HandlerUtil.getActiveWorkbenchWindowChecked(event);
+				} catch (ExecutionException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				//final Shell shell = new Shell(); we already have a shell
+				SourceFolderTitleAreaDialog dialog = new SourceFolderTitleAreaDialog(Display.getCurrent().getActiveShell());
+				alternative = new String(myDialog.open());
+				if (alternative!=null){
+					src = new String("/"+alternative+"/");
+				}
+			}*/
 			
 			if(projectData.getPackageName() != null){
 				// Analyze a package
 				String packageFormat = projectData.getPackageName().replace('.', '/');
-				pathToAnalyze = projectData.getPath() + "/src/" + packageFormat + "/";
+				pathToAnalyze = projectData.getPath() + src + packageFormat + "/";
 			}else{
 				// Analyze the src folder
-				pathToAnalyze = projectData.getPath() + "/src/";
+				pathToAnalyze = projectData.getPath() + src;
 			}
 			prepareReACOResources(projectData.getPath(), pathToAnalyze);
 
@@ -292,9 +325,6 @@ public class CodeSmellHandler extends AbstractHandler {
 		Note that we assume that the config.prop file located in the working directory
 		does not contains pathProjecttoAnalize, since this is dynamically added 
 		according to the selection of the user.*/
-		//IPath outputPath = project.getOutputLocation();
-		//IFolder outputFolder = ResourcesPlugin.getWorkspace().getRoot().getFolder(outputPath);
-		//final String pathConfigFile = "/config.prop";
 		List<String> lines = null;
 		org.eclipse.core.runtime.Path pathConfigFile = new org.eclipse.core.runtime.Path("/config.prop");
 		URL fileURL2 = FileLocator.find(Platform.getBundle("RefACo"), pathConfigFile, null);
@@ -374,7 +404,6 @@ public class CodeSmellHandler extends AbstractHandler {
 		List<String> lines = Files.readAllLines(Paths.get(path + "FitnessReport-0" + nameProject + ".txt"));
 		if (lines != null)// && lines.size() > 20) 
 			{
-			
 			// get the number of refactoring opp.
 			String line = lines.get(oppRefactoringLine);
 			String fitnessabstract[]=line.split(",");
@@ -389,7 +418,6 @@ public class CodeSmellHandler extends AbstractHandler {
 					refactoringOpps.add(linesRefactorings.get(i));
 				}
 			}
-
 			// For each Smell read the results file read and parse OriginaCount.txt
 			int[] numCodeSmells = new int[5];
 			codeSmells = new ArrayList<RowData>();
@@ -404,7 +432,6 @@ public class CodeSmellHandler extends AbstractHandler {
 
 				getCodeSmells(nameToInt(antiPatternsType), path, antiPatternsNumber);
 			}
-			
 		/*	for (int i = 0; i < numCodeSmells.length; i++) {
 				line = lines.get(firstRefactoringLine + offsetCodeSmells[i]);
 				numCodeSmells[i] = Integer.parseInt(line.substring(0, line.indexOf(" ")));
