@@ -9,6 +9,7 @@ import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IMethod;
@@ -32,6 +33,7 @@ import org.eclipse.ltk.ui.refactoring.RefactoringWizardOpenOperation;
 import org.eclipse.swt.widgets.Display;
 import refaco.RefactoringData;
 import refaco.exceptions.RefactoringException;
+import refaco.utils.SaveInTextFile;
 
 /**
  * Introduce Parameter Object refactoring
@@ -39,8 +41,10 @@ import refaco.exceptions.RefactoringException;
  */
 public class IntroduceParameterObjectRefactoring extends refaco.refactorings.Refactoring {
 
+	SaveInTextFile saved;
 	public IntroduceParameterObjectRefactoring(RefactoringData _refactoringData, String _projectName) {
 		super(_refactoringData, _projectName);
+		saved = new SaveInTextFile(_refactoringData, _projectName);
 	}
 	
 	private static String createNewClass(String sourceClass) {
@@ -105,7 +109,6 @@ public class IntroduceParameterObjectRefactoring extends refaco.refactorings.Ref
 			
 				// check if the method has been found
 				if (method != null && method.exists()) {
-					
 					// Initialize the refactoring descriptor
 					RefactoringContribution contribution = RefactoringCore
 							.getRefactoringContribution(IJavaRefactorings.INTRODUCE_PARAMETER_OBJECT);
@@ -127,21 +130,26 @@ public class IntroduceParameterObjectRefactoring extends refaco.refactorings.Ref
 					RefactoringWizardOpenOperation op = new RefactoringWizardOpenOperation(wizard);
 					
 					IProgressMonitor monitor = new NullProgressMonitor();
-					refactoring.checkInitialConditions(monitor);
-					RefactoringStatus status = new RefactoringStatus();
-					refactoring.checkFinalConditions(monitor);
-					Change change = refactoring.createChange(monitor);
-					change.initializeValidationData(monitor);
-					change.perform(monitor);
+					
+					try {
+						refactoring.checkInitialConditions(monitor);
+						RefactoringStatus status = new RefactoringStatus();
+						refactoring.checkFinalConditions(monitor);
+						Change change = refactoring.createChange(monitor);
+						change.initializeValidationData(monitor);
+						change.perform(monitor);
+					} catch (OperationCanceledException  | NullPointerException e) {
+						//e.printStackTrace();
+						saved.saving("IntroduceParameterObjectRefactoring", e.toString());
+					}
 				
 					
-				} else {
-					throw new RefactoringException("Method not exist");
-				}
+				} else{saved.saving("IntroduceParameterObjectRefactoring", "cannot be applied cause the argument is null or"
+						);}
 			} else {
 				throw new RefactoringException("Java Nature disabled");
 			}
-		} catch (CoreException e1) {
+		} catch (CoreException e1 ) {
 			e1.printStackTrace();
 			throw new RefactoringException(e1.getMessage());
 		} 
