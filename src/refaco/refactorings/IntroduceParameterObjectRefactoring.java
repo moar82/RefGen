@@ -83,7 +83,7 @@ public class IntroduceParameterObjectRefactoring extends refaco.refactorings.Ref
 		
 		try {
 			if (project.isNatureEnabled("org.eclipse.jdt.core.javanature")) {
-				
+
 				// Get the IMethod
 				IJavaProject javaProject = JavaCore.create(project);
 				IPackageFragmentRoot rootpackage = javaProject.getPackageFragmentRoot(project.getFolder("src"));
@@ -91,7 +91,7 @@ public class IntroduceParameterObjectRefactoring extends refaco.refactorings.Ref
 				ICompilationUnit classCU = classPackage.getCompilationUnit(className + ".java");
 				IType type = classCU.getType(className);
 				IMethod method = type.getMethod(methodName, parametersTypes);
-				
+
 				// check if the method has been found
 				// if not search the method by name and number of parameters
 				if(method==null || !method.exists()){
@@ -106,7 +106,7 @@ public class IntroduceParameterObjectRefactoring extends refaco.refactorings.Ref
 						i++;
 					}
 				}
-			
+
 				// check if the method has been found
 				if (method != null && method.exists()) {
 					// Initialize the refactoring descriptor
@@ -120,17 +120,12 @@ public class IntroduceParameterObjectRefactoring extends refaco.refactorings.Ref
 					descriptor.setPackageName(classPackage.getElementName());
 					descriptor.setProject(javaProject.getElementName());
 					descriptor.setMethod(method);
-
-					
-
 					// Create the classes needed for apply the refactoring
 					IntroduceParameterObjectProcessor processor = new IntroduceParameterObjectProcessor(descriptor);
 					Refactoring refactoring = new ProcessorBasedRefactoring(processor);
 					IntroduceParameterObjectWizard wizard = new IntroduceParameterObjectWizard(processor, refactoring);
 					RefactoringWizardOpenOperation op = new RefactoringWizardOpenOperation(wizard);
-					
 					IProgressMonitor monitor = new NullProgressMonitor();
-					
 					try {
 						refactoring.checkInitialConditions(monitor);
 						RefactoringStatus status = new RefactoringStatus();
@@ -140,12 +135,13 @@ public class IntroduceParameterObjectRefactoring extends refaco.refactorings.Ref
 						change.perform(monitor);
 					} catch (OperationCanceledException  | NullPointerException e) {
 						//e.printStackTrace();
-						saved.saving("IntroduceParameterObjectRefactoring", e.toString());
+						saved.saving("IntroduceParameterObjectRefactoring", e.toString()+"\n"
+								+ "src: "+packageAndClass+" method name:" + methodName );
 					}
-				
-					
-				} else{saved.saving("IntroduceParameterObjectRefactoring", "cannot be applied cause the argument is null or"
-						);}
+
+				} else{saved.saving("IntroduceParameterObjectRefactoring", "cannot be applied cause the argument is null "+
+						"src: "+packageAndClass+" method name:" + methodName );
+				}
 			} else {
 				throw new RefactoringException("Java Nature disabled");
 			}
