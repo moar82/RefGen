@@ -1,9 +1,11 @@
 package refaco.refactorings;
 
+import java.lang.reflect.Array;
 //import java.lang.reflect.Executable;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 
 import org.eclipse.core.resources.IProject;
@@ -22,8 +24,10 @@ import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IMember;
 import org.eclipse.jdt.core.IMethod;
+import org.eclipse.jdt.core.IPackageDeclaration;
 import org.eclipse.jdt.core.IPackageFragment;
 import org.eclipse.jdt.core.IPackageFragmentRoot;
+import org.eclipse.jdt.core.ISourceManipulation;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
@@ -39,10 +43,16 @@ import org.eclipse.jdt.core.dom.IBinding;
 import org.eclipse.jdt.core.dom.IMethodBinding;
 import org.eclipse.jdt.core.dom.ITypeBinding;
 import org.eclipse.jdt.core.dom.IVariableBinding;
+import org.eclipse.jdt.core.dom.ImportDeclaration;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
 import org.eclipse.jdt.core.dom.MethodInvocation;
 import org.eclipse.jdt.core.dom.Modifier;
+import org.eclipse.jdt.core.dom.PackageDeclaration;
+import org.eclipse.jdt.core.dom.SingleMemberAnnotation;
+import org.eclipse.jdt.core.dom.TypeDeclaration;
 import org.eclipse.jdt.core.dom.rewrite.ASTRewrite;
+import org.eclipse.jdt.core.dom.rewrite.ITrackedNodePosition;
+import org.eclipse.jdt.core.dom.rewrite.ListRewrite;
 import org.eclipse.jdt.core.refactoring.IJavaRefactorings;
 import org.eclipse.jdt.core.refactoring.descriptors.EncapsulateFieldDescriptor;
 import org.eclipse.jdt.core.refactoring.descriptors.ExtractClassDescriptor;
@@ -59,6 +69,9 @@ import org.eclipse.jdt.internal.corext.refactoring.structure.PushDownRefactoring
 import org.eclipse.jdt.internal.corext.refactoring.util.TextChangeManager;
 import org.eclipse.jdt.internal.corext.refactoring.util.TextEditBasedChangeManager;
 import org.eclipse.jdt.internal.ui.refactoring.PushDownWizard;
+import org.eclipse.jface.text.BadLocationException;
+import org.eclipse.jface.text.Document;
+import org.eclipse.jface.text.IDocument;
 import org.eclipse.ltk.core.refactoring.Change;
 import org.eclipse.ltk.core.refactoring.CompositeChange;
 import org.eclipse.ltk.core.refactoring.Refactoring;
@@ -73,6 +86,10 @@ import org.eclipse.ltk.core.refactoring.participants.RefactoringProcessor;
 import org.eclipse.ltk.internal.core.refactoring.RefactoringCoreMessages;
 import org.eclipse.ltk.ui.refactoring.RefactoringWizardOpenOperation;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.text.edits.MalformedTreeException;
+import org.eclipse.text.edits.TextEdit;
+import org.eclipse.text.edits.UndoEdit;
+
 import refaco.RefactoringData;
 import refaco.exceptions.RefactoringException;
 
@@ -90,7 +107,9 @@ public class CollapseHierarchyRefactoring extends refaco.refactorings.Refactorin
 	 IField[] field;
 	 IMethod[] targetMethod;
 	 IMethod[] method;
-	 String constructorValue;
+	 String importValueSource;
+	 String importValueTarget;
+
 	public CollapseHierarchyRefactoring(RefactoringData _refactoringData, String _projectName) {
 		super(_refactoringData, _projectName);
 	}
@@ -123,15 +142,29 @@ public class CollapseHierarchyRefactoring extends refaco.refactorings.Refactorin
 						// Get the Class Source
 						IPackageFragment classPackage = rootpackage.getPackageFragment(packageSourceName);
 						ICompilationUnit classCU = classPackage.getCompilationUnit(classSourceName + ".java");
+
 						
 						IType typeSource = classCU.getType(classSourceName);
 						// Get the Class Target
 						IPackageFragment classTargetPackage = rootpackage.getPackageFragment(packageTargetName);
 						ICompilationUnit classTargetCU = classTargetPackage.getCompilationUnit(classTargetName + ".java");
 						IType typeTarget = classTargetCU.getType(classTargetName);
-						
+
 						if (typeSource != null)
 						{
+							ASTParser parserTarget = ASTParser.newParser(AST.JLS8);
+							parserTarget.setSource(classTargetCU);
+							parserTarget.setKind(ASTParser.K_COMPILATION_UNIT);
+							parserTarget.setResolveBindings(true); // we need bindings later on
+					        final CompilationUnit cuTarget = (CompilationUnit) parserTarget.createAST(null);
+					        cuTarget.accept(new ASTVisitor() {
+								public boolean visit(MethodDeclaration node)
+								{
+									importValueTarget = node.getRoot().toString();
+									return true;
+								}
+					        });
+					        
 							ASTParser parser = ASTParser.newParser(AST.JLS8);
 							parser.setSource(classCU);
 							parser.setKind(ASTParser.K_COMPILATION_UNIT);
@@ -141,6 +174,7 @@ public class CollapseHierarchyRefactoring extends refaco.refactorings.Refactorin
 								public boolean visit(MethodDeclaration node)
 								{
 									 // Get All the members
+									importValueSource = node.getRoot().toString();
 										 try
 										 {
 											javaElements =  typeSource.getChildren();
@@ -182,6 +216,7 @@ public class CollapseHierarchyRefactoring extends refaco.refactorings.Refactorin
 								 // Get All the members
 									 try
 									 {
+										
 										javaElements =  typeSource.getChildren();
 										targetJavaElements = typeTarget.getChildren();
 										members = new IMember[javaElements.length];
@@ -228,13 +263,35 @@ public class CollapseHierarchyRefactoring extends refaco.refactorings.Refactorin
 											IProgressMonitor monitor = new NullProgressMonitor();
 											RefactoringStatus status = new RefactoringStatus();								
 											processor.setDestinationType(typeTarget);
+											List<String> parsingImport = null;
+											List<String>  parsingImportT = new ArrayList<>();
+											String[] sourceImport =  importValueSource.split(";");
+											String[] targetImport = importValueTarget.split(";");
+											String[] tempo = new String[parsingImportT.size()];
+											for(int t = 0;t<sourceImport.length;++t)
+											if(sourceImport[t].contains("import"))
+											{
+												parsingImportT.add(sourceImport[t]);
+											}
+											tempo=parsingImportT.toArray(new String[0]);
+												targetImport = combineString(tempo,targetImport);
+												Document document = null;
+												for(int i = 0;i<targetImport.length;++i)
+												{
+													if(targetImport[i].contains("import"))
+													{
+														String[] valueImportTar = targetImport[i].split(";");
+														String[] line = valueImportTar[0].split(" ");
+														classTargetCU.createImport(line[1], null, monitor);
+													}
+												}
 											IMethod[] same = new IMethod[javaElements.length];
 											for (int j = 0; j < field.length ; ++j)
 												if(field[j] !=null)
 													field[j].move(typeTarget, null, null, false, monitor);
 											for (int j = 0; j < method.length ; ++j)
 												if(method[j] !=null )
-													if(!method[j].isConstructor())
+													//if(!method[j].isConstructor())
 													{
 														same = typeTarget.findMethods(method[j]);
 														if(same != null)
@@ -242,9 +299,11 @@ public class CollapseHierarchyRefactoring extends refaco.refactorings.Refactorin
 																same[k].delete(true, monitor);
 														method[j].move(typeTarget, null, null, true, monitor);
 													}
-													else
-														method[j].delete(true, monitor);
-												processor.setDeletedMethods(method);
+													/*else
+														method[j].delete(true, monitor);*/
+												processor.setDeletedMethods(method);												
+												typeSource.getPackageFragment();
+											System.out.println(typeTarget.getFlags());
 												classCU.delete(true, monitor);
 										}
 									}
@@ -272,4 +331,11 @@ public class CollapseHierarchyRefactoring extends refaco.refactorings.Refactorin
 			}
 	
 		}
+		public static String[] combineString(String[] first, String[] second){
+	        int length = first.length + second.length;
+	        String[] result = new String[length];
+	        System.arraycopy(first, 0, result, 0, first.length);
+	        System.arraycopy(second, 0, result, first.length, second.length);
+	        return result;
+	    }
 }
