@@ -11,7 +11,7 @@ public class ReACOExecutionException extends Exception  {
 	 }
 	 
 	 public ReACOExecutionException(){
-		 super("Exception at execute SACO");
+		 super("Exception at execute refactoring jar file");
 	 }
 
 

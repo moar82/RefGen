@@ -13,7 +13,7 @@ public enum RefactoringType {
 	EXTRACT_CLASS ("Extract Class"),
 	REMOVE_PARAMETER ("Remove Parameter"),
 	REPLACE_METHOD_WITH_METHOD_OJBECT ("Replace Method with Method Object (manual)"),
-	REFACTSPAGHETTICODE ("REfact Spagheti Code");	// Not implemented
+	REFACTSPAGHETTICODE ("Replace Long method with Object");	// Not implemented
 	
 	private String nameToString; 
     private RefactoringType(String nameToString) { 

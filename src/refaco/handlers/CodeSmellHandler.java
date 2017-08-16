@@ -132,12 +132,12 @@ public class CodeSmellHandler extends AbstractHandler {
 			
 			final String  javasrc = src;
 			
-			// Job for execute ReACO in background
-			Job job = new Job("RefACo") {
+			// Job for execute RefGen in background
+			Job job = new Job("RefGen") {
 				protected IStatus run(IProgressMonitor monitor) {
 					try {
 						int totalUnitsOfWork = 250;
-						monitor.beginTask("Running RefACo", totalUnitsOfWork);
+						monitor.beginTask("Running RefGen", totalUnitsOfWork);
 						// Call to execute SACO
 						executeReACO(view.getProjectData(), monitor, javasrc);
 
