@@ -116,7 +116,7 @@ public class MoveMethodRefactoring extends refaco.refactorings.Refactoring{
 		IPackageFragment classPackage = rootpackage.getPackageFragment(packageSourceName);
 		ICompilationUnit classCU = classPackage.getCompilationUnit(classSourceName + ".java");
 		IType typeSource = classCU.getType(classSourceName);
-		
+	
 		// Get the IMethod
 		IMethod[] methods = null;
 		try {

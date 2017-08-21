@@ -133,7 +133,7 @@ public class RefactoringData {
 			case "ReplaceMethodWithMethodObject":
 				res = RefactoringType.REPLACE_METHOD_WITH_METHOD_OJBECT; break;
 			case "refactSpaghettiCode":
-				res = RefactoringType.REFACTSPAGHETTICODE; break;
+				res = RefactoringType.EXTRACT_CLASS; break;
 			default:
 				System.err.println("New Smell detected: " + s);
 				return null;
@@ -165,6 +165,8 @@ public class RefactoringData {
 			case "Move Method":
 				res = RefactoringType.MOVE_METHOD; break;
 			case "Extract Class":
+				res = RefactoringType.EXTRACT_CLASS; break;
+			case "refactSpaghettiCode":
 				res = RefactoringType.EXTRACT_CLASS; break;
 			case "Remove Parameter":
 				res = RefactoringType.REMOVE_PARAMETER; break;
