@@ -130,7 +130,6 @@ public class CollapseHierarchyRefactoring extends refaco.refactorings.Refactorin
 			index = temp.lastIndexOf('.');
 			String packageTargetName = temp.substring(0, index);
 			String classTargetName = temp.substring(index + 1, temp.length());
-	
 			// Get the IProject from the projectName
 			IWorkspace workspace = ResourcesPlugin.getWorkspace();
 			IWorkspaceRoot root = workspace.getRoot();
@@ -283,19 +282,16 @@ public class CollapseHierarchyRefactoring extends refaco.refactorings.Refactorin
 											for (int j = 0; j < field.length ; ++j)
 												if(field[j] !=null)
 													field[j].move(typeTarget, null, null, false, monitor);
-											for (int j = 0; j < method.length ; ++j)
+											for (int j = 0; j < method.length ; ++j){
 												if(method[j] !=null )
 													//if(!method[j].isConstructor())
 													{
 														same = typeTarget.findMethods(method[j]);
 														if(same != null)
 															for(int k = 0; k < same.length ; ++k){
-																TypeDeclaration typeDecl = (TypeDeclaration) cuTarget.types().get(0);
-																if(typeDecl.getName().toString().matches("abstract"))
-																	typeDecl.modifiers().clear();
 																same[k].delete(true, monitor);
-
 															}
+													}
 														//method[j].move(typeTarget, null, null, true, monitor);
 														MoveInstanceMethodProcessor processorM = new MoveInstanceMethodProcessor(method[j], new CodeGenerationSettings());
 														Refactoring refactoringM = new ProcessorBasedRefactoring(processorM);
@@ -327,7 +323,7 @@ public class CollapseHierarchyRefactoring extends refaco.refactorings.Refactorin
 															changeM.initializeValidationData(monitorM);
 															changeM.perform(monitorM);
 														}
-													}
+											}
 													/*else
 														method[j].delete(true, monitor);*/
 												processor.setDeletedMethods(method);												
