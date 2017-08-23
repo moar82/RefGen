@@ -113,7 +113,7 @@ public class CollapseHierarchyRefactoring extends refaco.refactorings.Refactorin
 	 String importValueSource;
 	 String importValueTarget;
 
-	public CollapseHierarchyRefactoring(RefactoringData _refactoringData, String _projectName) {
+	 public CollapseHierarchyRefactoring(RefactoringData _refactoringData, String _projectName) {
 		super(_refactoringData, _projectName);
 	}
 
@@ -153,7 +153,6 @@ public class CollapseHierarchyRefactoring extends refaco.refactorings.Refactorin
 						IType typeTarget = classTargetCU.getType(classTargetName);
 						Class clas = typeTarget.getClass();
 						int modifiers = clas.getModifiers();
-						System.out.println( Modifier.isStatic(modifiers));
 						if (typeSource != null)
 						{
 							ASTParser parserTarget = ASTParser.newParser(AST.JLS8);
@@ -165,9 +164,6 @@ public class CollapseHierarchyRefactoring extends refaco.refactorings.Refactorin
 								public boolean visit(MethodDeclaration node)
 								{
 									importValueTarget = node.getRoot().toString();
-									System.out.println("test:"+ node.modifiers());
-									System.out.println(node.getModifiers());
-									System.out.println(node.getFlags());
 									return true;
 								}
 					        });
@@ -272,42 +268,17 @@ public class CollapseHierarchyRefactoring extends refaco.refactorings.Refactorin
 											processor.setDestinationType(typeTarget);
 											RefactoringContribution contribution = RefactoringCore
 													.getRefactoringContribution(IJavaRefactorings.MOVE_METHOD);
-											MoveMethodDescriptor descriptor = (MoveMethodDescriptor) contribution.createDescriptor();											List<String> parsingImport = null;
+											MoveMethodDescriptor descriptor = (MoveMethodDescriptor) contribution.createDescriptor();											
 											List<String>  parsingImportT = new ArrayList<>();
 											String[] sourceImport =  importValueSource.split(";");
 											String[] targetImport = importValueTarget.split(";");
 											String[] tempo = new String[parsingImportT.size()];
 											for(int t = 0;t<sourceImport.length;++t)
-											if(sourceImport[t].contains("import"))
+											if(sourceImport[t].contains("import") || sourceImport[t].contains("package"))
 											{
 												parsingImportT.add(sourceImport[t]);
 											}
-											tempo=parsingImportT.toArray(new String[0]);
-												targetImport = combineString(tempo,targetImport);
-												Document document = null;
-												for(int i = 0;i<targetImport.length;++i)
-												{
-													if(targetImport[i].contains("import"))
-													{
-														String[] valueImportTar = targetImport[i].split(";");
-														String[] line = valueImportTar[0].split(" ");
-														classTargetCU.createImport(line[1], null, monitor);
-													}
-												}
-												System.out.println(classTargetCU.getElementName());
-												classTargetCU.rename("URLDocument", false, monitor);
-												  AST ast = AST.newAST(AST.JLS3);
-												  CompilationUnit unit = ast.newCompilationUnit();
-												  TypeDeclaration type = ast.newTypeDeclaration();
-												  type.setInterface(false);
-												  type.modifiers().add(ast.newModifier(Modifier.ModifierKeyword.PUBLIC_KEYWORD));
-												  type.setName(ast.newSimpleName(classTargetName));
-
-												  
-												System.out.println(typeTarget.getFlags());
-												boolean isAbstract = Flags.isAbstract(typeTarget.getFlags());
-												Flags.toString(typeTarget.getFlags()).replace("public Abstract", "public");
-												System.out.println("Abstract:"+descriptor.getFlags());
+											
 											IMethod[] same = new IMethod[javaElements.length];
 											for (int j = 0; j < field.length ; ++j)
 												if(field[j] !=null)
@@ -318,16 +289,101 @@ public class CollapseHierarchyRefactoring extends refaco.refactorings.Refactorin
 													{
 														same = typeTarget.findMethods(method[j]);
 														if(same != null)
-															for(int k = 0; k < same.length ; ++k)
+															for(int k = 0; k < same.length ; ++k){
+																TypeDeclaration typeDecl = (TypeDeclaration) cuTarget.types().get(0);
+																if(typeDecl.getName().toString().matches("abstract"))
+																	typeDecl.modifiers().clear();
 																same[k].delete(true, monitor);
-														method[j].move(typeTarget, null, null, true, monitor);
+
+															}
+														//method[j].move(typeTarget, null, null, true, monitor);
+														MoveInstanceMethodProcessor processorM = new MoveInstanceMethodProcessor(method[j], new CodeGenerationSettings());
+														Refactoring refactoringM = new ProcessorBasedRefactoring(processorM);
+														// Set the target class
+														IProgressMonitor monitorM = new NullProgressMonitor();
+														refactoring.checkInitialConditions(monitorM);
+														IVariableBinding[] targets = processorM.getPossibleTargets();
+														IVariableBinding targetArgument = null;
+													
+														for(IVariableBinding target: targets){
+														 if (target.getType().getName().equals(descriptor.getClass().getName())){
+																processorM.setTarget(target);
+																targetArgument = target;
+																break;
+															}
+														 
+														}
+														if (targetArgument != null){
+															refaco.refactorings.MoveInstanceMethodWizard wizard = new refaco.refactorings.MoveInstanceMethodWizard(
+																	processorM, refactoringM, targetArgument);
+												
+															RefactoringContribution contributionM = RefactoringCore
+																	.getRefactoringContribution(IJavaRefactorings.MOVE_METHOD);
+															MoveMethodDescriptor descriptorM = (MoveMethodDescriptor) contributionM.createDescriptor();
+															RefactoringStatus statusM = new RefactoringStatus();
+															refactoring.checkFinalConditions(monitorM);
+															//status = new RefactoringStatus();
+															Change changeM = refactoring.createChange(monitorM);
+															changeM.initializeValidationData(monitorM);
+															changeM.perform(monitorM);
+														}
 													}
 													/*else
 														method[j].delete(true, monitor);*/
 												processor.setDeletedMethods(method);												
 												typeSource.getPackageFragment();
-											System.out.println(typeTarget.getFlags());
+												  AST ast = cuTarget.getAST();
+												// create the descriptive ast rewriter
+												  ASTRewrite rewrite= ASTRewrite.create(ast);
+												TypeDeclaration typeDecla = (TypeDeclaration) cuTarget.types().get(0);
+												String[] splitin = typeDecla.toString().split("\n");
+
+												List modifier = typeDecla.modifiers();
+												for(int t = 0;t<splitin.length;++t)
+													if(splitin[t].contains("abstract") & typeDecla.modifiers().toString().contains("abstract"))
+													{
+														typeDecla.modifiers().remove(1);
+														// apply the text edits to the compilation unit
+														try {
+															//ListRewrite listRewrite= rewrite.getListRewrite(typeDecl, TypeDeclaration.MODIFIERS2_PROPERTY);
+															//listRewrite.replace(typeDecl, typeDecla, null);
+		
+															//listRewrite.replace(typeDecl, typeDecla, null);
+															//Document documents= new Document(classTargetCU.getSource());
+															Document documents= new Document(typeDecla.toString());
+															TextEdit res= rewrite.rewriteAST();//(documents,null);
+															res.apply(documents);
+															classTargetCU.getBuffer().setContents(documents.get());
+		
+														} catch (MalformedTreeException e) {
+															// TODO Auto-generated catch block
+															e.printStackTrace();
+														} catch (BadLocationException e) {
+															// TODO Auto-generated catch block
+															e.printStackTrace();
+														}
+													}
+												tempo=parsingImportT.toArray(new String[0]);
+												targetImport = combineString(tempo,targetImport);
+												for(int i = 0;i<targetImport.length;++i)
+												{
+													if(targetImport[i].contains("package"))
+													{
+														String[] valueImportTar = targetImport[i].split(";");
+														String[] line = valueImportTar[0].split(" ");
+														classTargetCU.createPackageDeclaration(line[1], monitor);
+													}
+													if(targetImport[i].contains("import") )
+													{
+														String[] valueImportTar = targetImport[i].split(";");
+														String[] line = valueImportTar[0].split(" ");
+														classTargetCU.createImport(line[1], null, monitor);
+													}
+													
+												}
+											
 												classCU.delete(true, monitor);
+
 										}
 									}
 							else 

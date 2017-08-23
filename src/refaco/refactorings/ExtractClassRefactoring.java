@@ -328,8 +328,7 @@ public class ExtractClassRefactoring extends refaco.refactorings.Refactoring {
 										else {
 											saved.saving("ExtractClassRefactoring", "cannot be applied cause the method doesn't exist");
 										}
-								}
-										
+								}										
 									} else {
 										System.err.println("Nature disabled");
 										
