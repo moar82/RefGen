@@ -40,6 +40,7 @@ import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.core.dom.Expression;
 import org.eclipse.jdt.core.dom.FieldDeclaration;
 import org.eclipse.jdt.core.dom.IBinding;
+import org.eclipse.jdt.core.dom.IExtendedModifier;
 import org.eclipse.jdt.core.dom.IMethodBinding;
 import org.eclipse.jdt.core.dom.ITypeBinding;
 import org.eclipse.jdt.core.dom.IVariableBinding;
@@ -304,7 +305,7 @@ public class CollapseHierarchyRefactoring extends refaco.refactorings.Refactorin
 														refactoring.checkInitialConditions(monitorM);
 														IVariableBinding[] targets = processorM.getPossibleTargets();
 														IVariableBinding targetArgument = null;
-													
+
 														for(IVariableBinding target: targets){
 														 if (target.getType().getName().equals(descriptor.getClass().getName())){
 																processorM.setTarget(target);
@@ -338,28 +339,32 @@ public class CollapseHierarchyRefactoring extends refaco.refactorings.Refactorin
 												TypeDeclaration typeDecla = (TypeDeclaration) cuTarget.types().get(0);
 												String[] splitin = typeDecla.toString().split("\n");
 
-												List modifier = typeDecla.modifiers();
 												for(int t = 0;t<splitin.length;++t)
-													if(splitin[t].contains("abstract") & typeDecla.modifiers().toString().contains("abstract"))
+													if(splitin[t].contains("abstract") && typeDecla.modifiers().toString().contains("abstract"))
 													{
-														typeDecla.modifiers().remove(1);
+														
+														Object[] array = typeDecla.modifiers().toArray();
+														int indexModi = -1;
+														for (int i=0;i<array.length;i++){
+															String modifi = array[i].toString();
+															if (modifi.equals("abstract")){
+																indexModi = i;
+																break;
+															}
+														}
+														array = null;
+														//if(typeDecla.modifiers().)
+														typeDecla.modifiers().remove(indexModi);
 														// apply the text edits to the compilation unit
 														try {
-															//ListRewrite listRewrite= rewrite.getListRewrite(typeDecl, TypeDeclaration.MODIFIERS2_PROPERTY);
-															//listRewrite.replace(typeDecl, typeDecla, null);
-		
-															//listRewrite.replace(typeDecl, typeDecla, null);
-															//Document documents= new Document(classTargetCU.getSource());
 															Document documents= new Document(typeDecla.toString());
-															TextEdit res= rewrite.rewriteAST();//(documents,null);
+															TextEdit res= rewrite.rewriteAST();
 															res.apply(documents);
 															classTargetCU.getBuffer().setContents(documents.get());
 		
 														} catch (MalformedTreeException e) {
-															// TODO Auto-generated catch block
 															e.printStackTrace();
 														} catch (BadLocationException e) {
-															// TODO Auto-generated catch block
 															e.printStackTrace();
 														}
 													}
