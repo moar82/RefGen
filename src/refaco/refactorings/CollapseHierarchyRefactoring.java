@@ -61,14 +61,15 @@ import org.eclipse.jdt.core.refactoring.descriptors.ExtractClassDescriptor;
 import org.eclipse.jdt.core.refactoring.descriptors.MoveMethodDescriptor;
 import org.eclipse.jdt.core.refactoring.descriptors.PullUpDescriptor;
 import org.eclipse.jdt.core.refactoring.descriptors.PushDownDescriptor;
+import org.eclipse.jdt.core.refactoring.descriptors.RenameJavaElementDescriptor;
 import org.eclipse.jdt.core.refactoring.descriptors.ExtractClassDescriptor.Field;
 import org.eclipse.jdt.internal.corext.codemanipulation.CodeGenerationSettings;
 import org.eclipse.jdt.internal.corext.refactoring.changes.DynamicValidationStateChange;
+import org.eclipse.jdt.internal.corext.refactoring.rename.RenameCompilationUnitProcessor;
 import org.eclipse.jdt.internal.corext.refactoring.reorg.MoveCuUpdateCreator;
 import org.eclipse.jdt.internal.corext.refactoring.structure.HierarchyProcessor;
 import org.eclipse.jdt.internal.corext.refactoring.structure.MoveInstanceMethodProcessor;
 import org.eclipse.jdt.internal.corext.refactoring.structure.PullUpRefactoringProcessor;
-import org.eclipse.jdt.internal.corext.refactoring.structure.PushDownRefactoringProcessor;
 import org.eclipse.jdt.internal.corext.refactoring.util.TextChangeManager;
 import org.eclipse.jdt.internal.corext.refactoring.util.TextEditBasedChangeManager;
 import org.eclipse.jdt.internal.ui.refactoring.PushDownWizard;
@@ -76,7 +77,9 @@ import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.Document;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.ltk.core.refactoring.Change;
+import org.eclipse.ltk.core.refactoring.CheckConditionsOperation;
 import org.eclipse.ltk.core.refactoring.CompositeChange;
+import org.eclipse.ltk.core.refactoring.PerformRefactoringOperation;
 import org.eclipse.ltk.core.refactoring.Refactoring;
 import org.eclipse.ltk.core.refactoring.RefactoringContribution;
 import org.eclipse.ltk.core.refactoring.RefactoringCore;
@@ -86,6 +89,8 @@ import org.eclipse.ltk.core.refactoring.participants.CheckConditionsContext;
 import org.eclipse.ltk.core.refactoring.participants.MoveProcessor;
 import org.eclipse.ltk.core.refactoring.participants.ProcessorBasedRefactoring;
 import org.eclipse.ltk.core.refactoring.participants.RefactoringProcessor;
+import org.eclipse.ltk.core.refactoring.participants.RenameProcessor;
+import org.eclipse.ltk.core.refactoring.participants.RenameRefactoring;
 import org.eclipse.ltk.internal.core.refactoring.RefactoringCoreMessages;
 import org.eclipse.ltk.ui.refactoring.RefactoringWizardOpenOperation;
 import org.eclipse.swt.widgets.Display;
@@ -163,6 +168,41 @@ public class CollapseHierarchyRefactoring extends refaco.refactorings.Refactorin
 								public boolean visit(MethodDeclaration node)
 								{
 									importValueTarget = node.getRoot().toString();
+
+									try {
+										targetJavaElements = typeTarget.getChildren();
+										targetMethod = new IMethod[targetJavaElements.length];
+
+										for(int i=0; i < targetJavaElements.length;++i)
+										{
+											if(targetJavaElements[i].getElementType()==IJavaElement.METHOD)							
+												targetMethod[i] = (IMethod) targetJavaElements[i];		
+										}
+									} catch (JavaModelException e) {
+										// TODO Auto-generated catch block
+										e.printStackTrace();
+									}
+									
+									
+									return true;
+								}
+								public boolean visit(MethodInvocation node)
+								{
+									try {
+										targetJavaElements = typeTarget.getChildren();
+										targetMethod = new IMethod[targetJavaElements.length];
+
+										for(int i=0; i < targetJavaElements.length;++i)
+										{
+											if(targetJavaElements[i].getElementType()==IJavaElement.METHOD)							
+												targetMethod[i] = (IMethod) targetJavaElements[i];		
+										}
+									} catch (JavaModelException e) {
+										// TODO Auto-generated catch block
+										e.printStackTrace();
+									}
+									
+									
 									return true;
 								}
 					        });
@@ -180,11 +220,9 @@ public class CollapseHierarchyRefactoring extends refaco.refactorings.Refactorin
 										 try
 										 {
 											javaElements =  typeSource.getChildren();
-											targetJavaElements = typeTarget.getChildren();
 											members = new IMember[javaElements.length];
 											method = new IMethod[javaElements.length];
 											field = new IField[javaElements.length];
-											targetMethod = new IMethod[targetJavaElements.length];
 											
 											for(int i=0; i < javaElements.length;++i)
 											{
@@ -199,11 +237,6 @@ public class CollapseHierarchyRefactoring extends refaco.refactorings.Refactorin
 													method[i] = (IMethod) javaElements[i];
 												}
 												
-											}
-											for(int i=0; i < targetJavaElements.length;++i)
-											{
-												if(targetJavaElements[i].getElementType()==IJavaElement.METHOD)							
-													targetMethod[i] = (IMethod) targetJavaElements[i];		
 											}
 										} 
 										catch (Exception e) 
@@ -224,7 +257,6 @@ public class CollapseHierarchyRefactoring extends refaco.refactorings.Refactorin
 										members = new IMember[javaElements.length];
 										method = new IMethod[javaElements.length];
 										field = new IField[javaElements.length];
-										targetMethod = new IMethod[targetJavaElements.length];
 										
 										for(int i=0; i < javaElements.length;++i)
 										{
@@ -240,11 +272,7 @@ public class CollapseHierarchyRefactoring extends refaco.refactorings.Refactorin
 											}
 											
 										}
-										for(int i=0; i < targetJavaElements.length;++i)
-										{
-											if(targetJavaElements[i].getElementType()==IJavaElement.METHOD)							
-												targetMethod[i] = (IMethod) targetJavaElements[i];		
-										}
+									
 									} 
 									catch (Exception e) 
 								    {
@@ -259,76 +287,8 @@ public class CollapseHierarchyRefactoring extends refaco.refactorings.Refactorin
 									{
 										if( members.length > 0)
 										{
-											PullUpRefactoringProcessor processor = new org.eclipse.jdt.internal.corext.refactoring.structure.PullUpRefactoringProcessor(
-													members, new CodeGenerationSettings());
-											Refactoring refactoring = new ProcessorBasedRefactoring(processor);
-											IProgressMonitor monitor = new NullProgressMonitor();
-											RefactoringStatus status = new RefactoringStatus();								
-											processor.setDestinationType(typeTarget);
-											RefactoringContribution contribution = RefactoringCore
-													.getRefactoringContribution(IJavaRefactorings.MOVE_METHOD);
-											MoveMethodDescriptor descriptor = (MoveMethodDescriptor) contribution.createDescriptor();											
-											List<String>  parsingImportT = new ArrayList<>();
-											String[] sourceImport =  importValueSource.split(";");
-											String[] targetImport = importValueTarget.split(";");
-											String[] tempo = new String[parsingImportT.size()];
-											for(int t = 0;t<sourceImport.length;++t)
-											if(sourceImport[t].contains("import") || sourceImport[t].contains("package"))
-											{
-												parsingImportT.add(sourceImport[t]);
-											}
 											
-											IMethod[] same = new IMethod[javaElements.length];
-											for (int j = 0; j < field.length ; ++j)
-												if(field[j] !=null)
-													field[j].move(typeTarget, null, null, false, monitor);
-											for (int j = 0; j < method.length ; ++j){
-												if(method[j] !=null )
-													//if(!method[j].isConstructor())
-													{
-														same = typeTarget.findMethods(method[j]);
-														if(same != null)
-															for(int k = 0; k < same.length ; ++k){
-																same[k].delete(true, monitor);
-															}
-													}
-														//method[j].move(typeTarget, null, null, true, monitor);
-														MoveInstanceMethodProcessor processorM = new MoveInstanceMethodProcessor(method[j], new CodeGenerationSettings());
-														Refactoring refactoringM = new ProcessorBasedRefactoring(processorM);
-														// Set the target class
-														IProgressMonitor monitorM = new NullProgressMonitor();
-														refactoring.checkInitialConditions(monitorM);
-														IVariableBinding[] targets = processorM.getPossibleTargets();
-														IVariableBinding targetArgument = null;
-													
-														for(IVariableBinding target: targets){
-														 if (target.getType().getName().equals(descriptor.getClass().getName())){
-																processorM.setTarget(target);
-																targetArgument = target;
-																break;
-															}
-														 
-														}
-														if (targetArgument != null){
-															refaco.refactorings.MoveInstanceMethodWizard wizard = new refaco.refactorings.MoveInstanceMethodWizard(
-																	processorM, refactoringM, targetArgument);
-												
-															RefactoringContribution contributionM = RefactoringCore
-																	.getRefactoringContribution(IJavaRefactorings.MOVE_METHOD);
-															MoveMethodDescriptor descriptorM = (MoveMethodDescriptor) contributionM.createDescriptor();
-															RefactoringStatus statusM = new RefactoringStatus();
-															refactoring.checkFinalConditions(monitorM);
-															//status = new RefactoringStatus();
-															Change changeM = refactoring.createChange(monitorM);
-															changeM.initializeValidationData(monitorM);
-															changeM.perform(monitorM);
-														}
-											}
-													/*else
-														method[j].delete(true, monitor);*/
-												processor.setDeletedMethods(method);												
-												typeSource.getPackageFragment();
-												  AST ast = cuTarget.getAST();
+											 AST ast = cuTarget.getAST();
 												// create the descriptive ast rewriter
 												  ASTRewrite rewrite= ASTRewrite.create(ast);
 												TypeDeclaration typeDecla = (TypeDeclaration) cuTarget.types().get(0);
@@ -359,6 +319,82 @@ public class CollapseHierarchyRefactoring extends refaco.refactorings.Refactorin
 															e.printStackTrace();
 														}
 													}
+												
+											PullUpRefactoringProcessor processor = new org.eclipse.jdt.internal.corext.refactoring.structure.PullUpRefactoringProcessor(
+													members, new CodeGenerationSettings());
+											Refactoring refactoring = new ProcessorBasedRefactoring(processor);
+											IProgressMonitor monitor = new NullProgressMonitor();
+											RefactoringStatus status = new RefactoringStatus();								
+											processor.setDestinationType(typeTarget);
+											RefactoringContribution contribution = RefactoringCore
+													.getRefactoringContribution(IJavaRefactorings.MOVE_METHOD);
+											MoveMethodDescriptor descriptor = (MoveMethodDescriptor) contribution.createDescriptor();											
+											List<String>  parsingImportT = new ArrayList<>();
+											String[] sourceImport =  importValueSource.split(";");
+											String[] targetImport = importValueTarget.split(";");
+											String[] tempo = new String[parsingImportT.size()];
+											for(int t = 0;t<sourceImport.length;++t)
+											if(sourceImport[t].contains("import") || sourceImport[t].contains("package"))
+											{
+												parsingImportT.add(sourceImport[t]);
+											}
+											
+											IMethod[] same = new IMethod[javaElements.length];
+											IMethod found = null;
+											for (int j = 0; j < field.length ; ++j)
+												if(field[j] !=null)
+													field[j].move(typeTarget, null, null, false, monitor);
+											for (int j = 0; j < method.length ; ++j)
+											{
+												if(method[j] !=null )
+													{
+													
+														same = typeTarget.findMethods(method[j]);
+													
+														for(int r = 0; r < targetMethod.length ; ++r)
+															if( targetMethod[r]!=null && targetMethod[r].getElementName() == method[j].getElementName())
+																targetMethod[r].delete(true, monitor);
+														
+															method[j].move(typeTarget, null, null, false, monitor);
+
+													}
+														//method[j].move(typeTarget, null, null, true, monitor);
+														/*MoveInstanceMethodProcessor processorM = new MoveInstanceMethodProcessor(method[j], new CodeGenerationSettings());
+														Refactoring refactoringM = new ProcessorBasedRefactoring(processorM);
+														// Set the target class
+														IProgressMonitor monitorM = new NullProgressMonitor();
+														refactoring.checkInitialConditions(monitorM);
+														IVariableBinding[] targets = processorM.getPossibleTargets();
+														IVariableBinding targetArgument = null;
+													
+														for(IVariableBinding target: targets){
+														 if (target.getType().getName().equals(descriptor.getClass().getName())){
+																processorM.setTarget(target);
+																targetArgument = target;
+																break;
+															}
+														 
+														}*/
+														/*if (targetArgument != null){
+															refaco.refactorings.MoveInstanceMethodWizard wizard = new refaco.refactorings.MoveInstanceMethodWizard(
+																	processorM, refactoringM, targetArgument);
+												
+															RefactoringContribution contributionM = RefactoringCore
+																	.getRefactoringContribution(IJavaRefactorings.MOVE_METHOD);
+															MoveMethodDescriptor descriptorM = (MoveMethodDescriptor) contributionM.createDescriptor();
+															RefactoringStatus statusM = new RefactoringStatus();
+															refactoring.checkFinalConditions(monitorM);
+															//status = new RefactoringStatus();
+															Change changeM = refactoring.createChange(monitorM);
+															changeM.initializeValidationData(monitorM);
+															changeM.perform(monitorM);
+														}*/
+											}
+													/*else
+														method[j].delete(true, monitor);*/
+												//processor.setDeletedMethods(method);	
+												
+												 
 												tempo=parsingImportT.toArray(new String[0]);
 												targetImport = combineString(tempo,targetImport);
 												for(int i = 0;i<targetImport.length;++i)
@@ -378,7 +414,38 @@ public class CollapseHierarchyRefactoring extends refaco.refactorings.Refactorin
 													
 												}
 											
+												/*RenameCompilationUnitProcessor processorR = new RenameCompilationUnitProcessor(classCU);
+												processorR.setUpdateReferences(true);
+												processorR.setNewElementName(classTargetName);
+												RefactoringContribution contributionR = RefactoringCore
+														.getRefactoringContribution(IJavaRefactorings.RENAME_COMPILATION_UNIT);
+												RenameJavaElementDescriptor descriptorR = (RenameJavaElementDescriptor) contributionR.createDescriptor();
+												Refactoring fRefactoring = new  ProcessorBasedRefactoring(processorR);
+												RefactoringStatus statusR = new RefactoringStatus();
+												
+												//  final PerformRefactoringOperation operation = new PerformRefactoringOperation(fRefactoring, CheckConditionsOperation.ALL_CONDITIONS);
+												try {
+													//fRefactoring.checkFinalConditions(monitor);
+													Change fChange= fRefactoring.createChange(monitor);
+													//fChange.initializeValidationData(monitor);
+													fChange.perform(monitor);
+												} catch (Exception e) {
+													// TODO Auto-generated catch block
+													e.printStackTrace();
+													System.out.println("error");
+												}*/
 												classCU.delete(true, monitor);
+												
+												/*RenameCompilationUnitProcessor processorR = new RenameCompilationUnitProcessor(classCU);
+												processorR.setUpdateReferences(true);
+												processorR.setNewElementName(classTargetName+".java");*/
+												/*RenameRefactoring fRefactoring = new RenameRefactoring(processorR);
+												RefactoringStatus statusR = new RefactoringStatus();
+												fRefactoring.checkFinalConditions(monitor);
+												//  final PerformRefactoringOperation operation = new PerformRefactoringOperation(fRefactoring, CheckConditionsOperation.ALL_CONDITIONS);
+												Change fChange= fRefactoring.createChange(monitor);
+												fChange.initializeValidationData(monitor);
+												fChange.perform(monitor);*/
 
 										}
 									}
