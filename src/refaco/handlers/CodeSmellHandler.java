@@ -567,10 +567,10 @@ public class CodeSmellHandler extends AbstractHandler {
 	 */
 	private void getSpeculativeGeneralitySmells(String path, int num) throws IOException {
 		List<String> lines = Files
-				.readAllLines(Paths.get(path + "DetectionResults in results-0"+ nameProject+ " for SpeculativeGenerality.ini"));
+				.readAllLines(Paths.get(path + "DetectionResults in 0"+ nameProject+ " for SpeculativeGenerality.ini"));
 		for (int i = 0; i < lines.size(); i++) {
 			String line = lines.get(i);
-			if(line.contains("Entity"))
+			if(line.contains("=AbstractClass"))
 				codeSmells.add(
 						new RowData("Speculative Generality", line.substring(line.indexOf(':') + 1, line.indexOf('=')), null));
 		}
