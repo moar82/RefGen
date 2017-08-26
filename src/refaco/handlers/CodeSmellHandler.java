@@ -83,6 +83,7 @@ public class CodeSmellHandler extends AbstractHandler {
 		
 	}
 	private String nameProject;
+	public static String javasrc;
 	
 	// Getters & Setters
 	public List<String> getRefactoringOpps() {
@@ -115,23 +116,12 @@ public class CodeSmellHandler extends AbstractHandler {
 			String alternative = null;
 			File varTmpDir = new File(projectData.getPath()+ src);
 			if (varTmpDir.exists()==false){
-				/*IWorkbenchWindow window = null;
-				try {
-					window = HandlerUtil.getActiveWorkbenchWindowChecked(event);
-				} catch (ExecutionException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-				//final Shell shell = new Shell(); we already have a shell
-				SourceFolderTitleAreaDialog dialog = new SourceFolderTitleAreaDialog(Display.getCurrent().getActiveShell());*/
 				alternative = new String(myDialog.open());
 				if (alternative!=null){
 					src = new String("/"+alternative+"/");
 				}
-			}
-			
-			final String  javasrc = src;
-			
+			}		
+			 javasrc = src;//this variable is used in the application of collapse hierarchy
 			// Job for execute RefGen in background
 			Job job = new Job("RefGen") {
 				protected IStatus run(IProgressMonitor monitor) {
@@ -249,26 +239,6 @@ public class CodeSmellHandler extends AbstractHandler {
 			monitor.subTask("Preparing ReACO files...");
 			// Check if analyze a package or the full project
 			String pathToAnalyze;
-			/*RMA here we assume that the source folder is named src 
-			which is not necessarily true*/
-			//String src = "/src/";
-			String alternative = null;
-			/*File varTmpDir = new File(projectData.getPath()+ src);
-			if (varTmpDir.exists()==false){
-				IWorkbenchWindow window = null;
-				try {
-					window = HandlerUtil.getActiveWorkbenchWindowChecked(event);
-				} catch (ExecutionException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-				//final Shell shell = new Shell(); we already have a shell
-				SourceFolderTitleAreaDialog dialog = new SourceFolderTitleAreaDialog(Display.getCurrent().getActiveShell());
-				alternative = new String(myDialog.open());
-				if (alternative!=null){
-					src = new String("/"+alternative+"/");
-				}
-			}*/
 			
 			if(projectData.getPackageName() != null){
 				// Analyze a package
@@ -284,7 +254,6 @@ public class CodeSmellHandler extends AbstractHandler {
 
 			// execute the command
 			Process proc;
-			//String command = "java -jar " + "RefGen.jar  " + "config.txt 0 " + projectData.getName();
 			String command = "java -jar " + "RefGen.jar  " + "config.txt 0"+ projectData.getName();
 			proc = Runtime.getRuntime().exec(command, null, new File(projectData.getPath() + JARFOLDER));
 

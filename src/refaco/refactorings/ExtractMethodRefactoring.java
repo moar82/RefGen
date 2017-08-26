@@ -27,6 +27,7 @@ import org.eclipse.swt.widgets.Display;
 
 import refaco.RefactoringData;
 import refaco.exceptions.RefactoringException;
+import refaco.handlers.CodeSmellHandler;
 
 /**
  * Extract Method refactoring
@@ -56,7 +57,7 @@ public class ExtractMethodRefactoring extends refaco.refactorings.Refactoring {
 				
 				// Get the ICompilationUnit
 				IJavaProject javaProject = JavaCore.create(project);
-				IPackageFragmentRoot rootpackage = javaProject.getPackageFragmentRoot(project.getFolder("src"));
+				IPackageFragmentRoot rootpackage = javaProject.getPackageFragmentRoot(project.getFolder(CodeSmellHandler.javasrc));
 				IPackageFragment classPackage = rootpackage.getPackageFragment(packageSourceName);
 				ICompilationUnit classCU = classPackage.getCompilationUnit(classSourceName + ".java");
 

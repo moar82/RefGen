@@ -44,6 +44,7 @@ import org.eclipse.text.edits.MalformedTreeException;
 import org.eclipse.text.edits.TextEdit;
 import refaco.RefactoringData;
 import refaco.exceptions.RefactoringException;
+import refaco.handlers.CodeSmellHandler;
 
 /**
  * Collapse Hiearchy refactoring 
@@ -88,7 +89,7 @@ public class CollapseHierarchyRefactoring extends refaco.refactorings.Refactorin
 				{
 					// Get the src package
 					IJavaProject javaProject = JavaCore.create(project);
-					IPackageFragmentRoot rootpackage = javaProject.getPackageFragmentRoot(project.getFolder("src"));
+					IPackageFragmentRoot rootpackage = javaProject.getPackageFragmentRoot(project.getFolder(CodeSmellHandler.javasrc));
 					// Get the Class Source
 					IPackageFragment classPackage = rootpackage.getPackageFragment(packageSourceName);
 					ICompilationUnit classCU = classPackage.getCompilationUnit(classSourceName + ".java");						
