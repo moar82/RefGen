@@ -23,6 +23,6 @@ RefGen Eclipse plug-in
  
 RefGen plug-in is an Eclipse plug-in developed at [Polytechinique de Montreal](http://www.polymtl.ca) for performing automatic refactoring by [Christian Kabulo](https://github.com/Espiritous0x01) and [Rodrigo Morales](http://www.swat.polymtl.ca/rmorales/). 
 It is based in "RefACO DEVELOPMENT OF A TOOL FOR AUTOMATIC CODE" by Juan María Frías Hidalgo (University of Malaga) for his MS dissertation.
-It implements "RefGen" which is an automatic refactoring approach generated at Polytechnique de Montreal by Rodrigo Morales as part of its PhD Thesis.
+It implements "RefGen" which is an automatic refactoring approach generated at Polytechnique de Montreal by Rodrigo Morales as part of its PhD Thesis .
  
  
