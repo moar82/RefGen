@@ -45,6 +45,7 @@ import org.eclipse.text.edits.TextEdit;
 import refaco.RefactoringData;
 import refaco.exceptions.RefactoringException;
 import refaco.handlers.CodeSmellHandler;
+import refaco.utils.CHtypeVisitor;
 
 /**
  * Collapse Hiearchy refactoring 
@@ -378,6 +379,33 @@ public class CollapseHierarchyRefactoring extends refaco.refactorings.Refactorin
 													e.printStackTrace();
 													System.out.println("error");
 												}*/
+								
+								//update the references to the parent class
+								IPackageFragment classChangedPackage = rootpackage.getPackageFragment("net.sourceforge.ganttproject");
+								ICompilationUnit ClassChangedCU = classChangedPackage.getCompilationUnit("GanttProject" + ".java");
+								ASTParser parserClassChanged = ASTParser.newParser(AST.JLS8);
+								parserClassChanged.setSource(ClassChangedCU);
+								parserClassChanged.setKind(ASTParser.K_COMPILATION_UNIT);
+								parserClassChanged.setResolveBindings(true); // we need bindings later on
+								final CompilationUnit cuClassChanged = (CompilationUnit) parserClassChanged.createAST(null);
+								cuClassChanged.recordModifications();
+								rewrite = ASTRewrite.create(cuClassChanged.getAST());
+
+								TypeDeclaration typeDeclClassChanged = (TypeDeclaration) cuClassChanged.types().get(0);                                             
+								cuClassChanged.accept(new CHtypeVisitor(rewrite,classSourceName,typeDeclClassChanged));
+								//Document doc= new Document(typeDeclClassChanged.toString());
+								Document doc= new Document(ClassChangedCU.getSource());
+								TextEdit edits = rewrite.rewriteAST(doc, null);
+								try {
+								edits.apply(doc);
+								} catch (MalformedTreeException e) {
+								e.printStackTrace();
+								} catch (BadLocationException e) {
+								e.printStackTrace();
+								}
+								ClassChangedCU.getBuffer().setContents(doc.get());
+								
+								
 								classCU.delete(true, monitor);
 
 								/*RenameCompilationUnitProcessor processorR = new RenameCompilationUnitProcessor(classCU);
