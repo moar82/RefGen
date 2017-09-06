@@ -302,43 +302,8 @@ public class CollapseHierarchyRefactoring extends refaco.refactorings.Refactorin
 										method[j].move(typeTarget, null, null, false, monitor);
 
 									}
-									//method[j].move(typeTarget, null, null, true, monitor);
-									/*MoveInstanceMethodProcessor processorM = new MoveInstanceMethodProcessor(method[j], new CodeGenerationSettings());
-														Refactoring refactoringM = new ProcessorBasedRefactoring(processorM);
-														// Set the target class
-														IProgressMonitor monitorM = new NullProgressMonitor();
-														refactoring.checkInitialConditions(monitorM);
-														IVariableBinding[] targets = processorM.getPossibleTargets();
-														IVariableBinding targetArgument = null;
-
-														for(IVariableBinding target: targets){
-														 if (target.getType().getName().equals(descriptor.getClass().getName())){
-																processorM.setTarget(target);
-																targetArgument = target;
-																break;
-															}
-
-														}*/
-									/*if (targetArgument != null){
-															refaco.refactorings.MoveInstanceMethodWizard wizard = new refaco.refactorings.MoveInstanceMethodWizard(
-																	processorM, refactoringM, targetArgument);
-
-															RefactoringContribution contributionM = RefactoringCore
-																	.getRefactoringContribution(IJavaRefactorings.MOVE_METHOD);
-															MoveMethodDescriptor descriptorM = (MoveMethodDescriptor) contributionM.createDescriptor();
-															RefactoringStatus statusM = new RefactoringStatus();
-															refactoring.checkFinalConditions(monitorM);
-															//status = new RefactoringStatus();
-															Change changeM = refactoring.createChange(monitorM);
-															changeM.initializeValidationData(monitorM);
-															changeM.perform(monitorM);
-														}*/
+									
 								}
-								/*else
-														method[j].delete(true, monitor);*/
-								//processor.setDeletedMethods(method);	
-
-
 
 								tempo=parsingImportT.toArray(new String[0]);
 								targetImport = combineString(tempo,targetImport);
@@ -359,27 +324,6 @@ public class CollapseHierarchyRefactoring extends refaco.refactorings.Refactorin
 
 								}
 
-								/*RenameCompilationUnitProcessor processorR = new RenameCompilationUnitProcessor(classCU);
-												processorR.setUpdateReferences(true);
-												processorR.setNewElementName(classTargetName);
-												RefactoringContribution contributionR = RefactoringCore
-														.getRefactoringContribution(IJavaRefactorings.RENAME_COMPILATION_UNIT);
-												RenameJavaElementDescriptor descriptorR = (RenameJavaElementDescriptor) contributionR.createDescriptor();
-												Refactoring fRefactoring = new  ProcessorBasedRefactoring(processorR);
-												RefactoringStatus statusR = new RefactoringStatus();
-
-												//  final PerformRefactoringOperation operation = new PerformRefactoringOperation(fRefactoring, CheckConditionsOperation.ALL_CONDITIONS);
-												try {
-													//fRefactoring.checkFinalConditions(monitor);
-													Change fChange= fRefactoring.createChange(monitor);
-													//fChange.initializeValidationData(monitor);
-													fChange.perform(monitor);
-												} catch (Exception e) {
-													// TODO Auto-generated catch block
-													e.printStackTrace();
-													System.out.println("error");
-												}*/
-								
 								//update the references to the parent class
 								IPackageFragment classChangedPackage = rootpackage.getPackageFragment("net.sourceforge.ganttproject");
 								ICompilationUnit ClassChangedCU = classChangedPackage.getCompilationUnit("GanttProject" + ".java");
@@ -391,8 +335,9 @@ public class CollapseHierarchyRefactoring extends refaco.refactorings.Refactorin
 								cuClassChanged.recordModifications();
 								rewrite = ASTRewrite.create(cuClassChanged.getAST());
 
-								TypeDeclaration typeDeclClassChanged = (TypeDeclaration) cuClassChanged.types().get(0);                                             
-								cuClassChanged.accept(new CHtypeVisitor(rewrite,classSourceName,typeDeclClassChanged));
+								TypeDeclaration typeDeclClassChanged = (TypeDeclaration) cuClassChanged.types().get(0); 
+								TypeDeclaration typeNewName = (TypeDeclaration) cuTarget.types().get(0);
+								cuClassChanged.accept(new CHtypeVisitor(rewrite,classSourceName,typeDeclClassChanged,classTargetName));
 								//Document doc= new Document(typeDeclClassChanged.toString());
 								Document doc= new Document(ClassChangedCU.getSource());
 								TextEdit edits = rewrite.rewriteAST(doc, null);
@@ -404,7 +349,49 @@ public class CollapseHierarchyRefactoring extends refaco.refactorings.Refactorin
 								e.printStackTrace();
 								}
 								ClassChangedCU.getBuffer().setContents(doc.get());
-								
+								cuClassChanged.accept(new ASTVisitor() {
+									public boolean visit(MethodDeclaration node)
+									{
+										//a MODIFIER
+										importValueTarget = node.getRoot().toString();
+
+										try {
+											targetJavaElements = typeTarget.getChildren();
+											targetMethod = new IMethod[targetJavaElements.length];
+
+											for(int i=0; i < targetJavaElements.length;++i)
+											{
+												if(targetJavaElements[i].getElementType()==IJavaElement.METHOD)							
+													targetMethod[i] = (IMethod) targetJavaElements[i];		
+											}
+										} catch (JavaModelException e) {
+											// TODO Auto-generated catch block
+											e.printStackTrace();
+										}
+
+
+										return true;
+									}
+									public boolean visit(MethodInvocation node)
+									{
+										try {
+											targetJavaElements = typeTarget.getChildren();
+											targetMethod = new IMethod[targetJavaElements.length];
+
+											for(int i=0; i < targetJavaElements.length;++i)
+											{
+												if(targetJavaElements[i].getElementType()==IJavaElement.METHOD)							
+													targetMethod[i] = (IMethod) targetJavaElements[i];		
+											}
+										} catch (JavaModelException e) {
+											// TODO Auto-generated catch block
+											e.printStackTrace();
+										}
+
+
+										return true;
+									}
+								});
 								
 								classCU.delete(true, monitor);
 
