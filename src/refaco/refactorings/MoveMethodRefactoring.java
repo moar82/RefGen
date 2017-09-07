@@ -61,6 +61,7 @@ import org.eclipse.ui.progress.IProgressService;
 import refaco.RefactoringData;
 import refaco.RefactoringOperationStatus;
 import refaco.exceptions.RefactoringException;
+import refaco.handlers.CodeSmellHandler;
 import refaco.utils.SaveInTextFile;
 
 /**
@@ -112,7 +113,7 @@ public class MoveMethodRefactoring extends refaco.refactorings.Refactoring{
 		IProject project = root.getProject(getProjectName());
 		// Get the IType
 		IJavaProject javaProject = JavaCore.create(project);
-		IPackageFragmentRoot rootpackage = javaProject.getPackageFragmentRoot(project.getFolder("src"));
+		IPackageFragmentRoot rootpackage = javaProject.getPackageFragmentRoot(project.getFolder(CodeSmellHandler.javasrc));
 		IPackageFragment classPackage = rootpackage.getPackageFragment(packageSourceName);
 		ICompilationUnit classCU = classPackage.getCompilationUnit(classSourceName + ".java");
 		IType typeSource = classCU.getType(classSourceName);
