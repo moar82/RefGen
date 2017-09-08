@@ -312,7 +312,7 @@ public class CodeSmellHandler extends AbstractHandler {
 
 			// execute the command
 			Process proc;
-			String command = "java -jar " + "RefGen.jar  " + "config.txt 0"+ projectData.getName();
+			String command = "java -jar " + "RefGen.jar  " + "config.prop 0"+ projectData.getName();
 			proc = Runtime.getRuntime().exec(command, null, new File(projectData.getPath() + JARFOLDER));
 
 			// get ErrorStream
@@ -385,7 +385,7 @@ public class CodeSmellHandler extends AbstractHandler {
 		boolean bool = ser.delete();
 		ses.delete();*/
 		// write the configuration file
-		Path file = Paths.get(path + "/refgen/" + "config.txt");
+		Path file = Paths.get(path + "/refgen/" + "config.prop");
 		Files.write(file, lines, Charset.forName("UTF-8"));
 
 		// copy ReACO library to file 

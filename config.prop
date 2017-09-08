@@ -17,6 +17,6 @@ initialcountAntipatterns=1
 ###two options:
 #####modelManagerSCC.Schemes.SCCRefactoringSequence
 ######modelManagerSCC.Schemes.LiuRefactoringSequence
-refactoringScheme_class=modelManagerSCC.Schemes.LiuRefactoringSequence
+refactoringScheme_class=modelManagerSCC.Schemes.SCCRefactoringSequence
 #necessary for display progress
 printStepIteration=1
