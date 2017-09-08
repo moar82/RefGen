@@ -26,7 +26,7 @@ public class ReACOTests {
 			codeSmellHandler.prepareReACOResources(projectData.getPath(), projectData.getPath() + "/src/");
 			
 			// Check the config file exist
-			File file = new File(path + "/refaco/config.txt");
+			File file = new File(path + "/refaco/config.prop");
 			assertNotNull(file);
 		} catch (IOException e) {
 			fail();
