@@ -1,9 +1,11 @@
 package refaco.refactorings;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
@@ -12,6 +14,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IField;
+import org.eclipse.jdt.core.IImportDeclaration;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IMember;
@@ -25,6 +28,7 @@ import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTParser;
 import org.eclipse.jdt.core.dom.ASTVisitor;
 import org.eclipse.jdt.core.dom.CompilationUnit;
+import org.eclipse.jdt.core.dom.ImportDeclaration;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
 import org.eclipse.jdt.core.dom.MethodInvocation;
 import org.eclipse.jdt.core.dom.Name;
@@ -63,7 +67,7 @@ public class CollapseHierarchyRefactoring extends refaco.refactorings.Refactorin
 	 IMethod[] method;
 	 String importValueSource;
 	 String importValueTarget;
-
+	 String importValueTargetChanged;
 	 public CollapseHierarchyRefactoring(RefactoringData _refactoringData, String _projectName) {
 		super(_refactoringData, _projectName);
 	}
@@ -77,10 +81,10 @@ public class CollapseHierarchyRefactoring extends refaco.refactorings.Refactorin
 			String classSourceName = temp.substring(index + 1, temp.length());
 	
 			// Get the package and class name (Target)
-			temp = getRefactoringData().getClassSource();
-			index = temp.lastIndexOf('.');
-			String packageTargetName = temp.substring(0, index);
-			String classTargetName = temp.substring(index + 1, temp.length());
+			String tempT = getRefactoringData().getClassSource();
+			index = tempT.lastIndexOf('.');
+			String packageTargetName = tempT.substring(0, index);
+			String classTargetName = tempT.substring(index + 1, tempT.length());
 			// Get the IProject from the projectName
 			IWorkspace workspace = ResourcesPlugin.getWorkspace();
 			IWorkspaceRoot root = workspace.getRoot();
@@ -95,7 +99,7 @@ public class CollapseHierarchyRefactoring extends refaco.refactorings.Refactorin
 					IPackageFragment classPackage = rootpackage.getPackageFragment(packageSourceName);
 					ICompilationUnit classCU = classPackage.getCompilationUnit(classSourceName + ".java");						
 					IType typeSource = classCU.getType(classSourceName);
-
+					
 					// Get the Class Target
 					IPackageFragment classTargetPackage = rootpackage.getPackageFragment(packageTargetName);
 					ICompilationUnit classTargetCU = classTargetPackage.getCompilationUnit(classTargetName + ".java");
@@ -325,75 +329,71 @@ public class CollapseHierarchyRefactoring extends refaco.refactorings.Refactorin
 								}
 
 								//update the references to the parent class
-								IPackageFragment classChangedPackage = rootpackage.getPackageFragment("net.sourceforge.ganttproject");
-								ICompilationUnit ClassChangedCU = classChangedPackage.getCompilationUnit("GanttProject" + ".java");
-								ASTParser parserClassChanged = ASTParser.newParser(AST.JLS8);
+								//IPackageFragment classChangedPackage = rootpackage.getPackageFragment("net.sourceforge.ganttproject");
+								//ICompilationUnit ClassChangedCU = classChangedPackage.getCompilationUnit("GanttProject" + ".java");
+								/*ASTParser parserClassChanged = ASTParser.newParser(AST.JLS8);
 								parserClassChanged.setSource(ClassChangedCU);
 								parserClassChanged.setKind(ASTParser.K_COMPILATION_UNIT);
 								parserClassChanged.setResolveBindings(true); // we need bindings later on
-								final CompilationUnit cuClassChanged = (CompilationUnit) parserClassChanged.createAST(null);
-								cuClassChanged.recordModifications();
-								rewrite = ASTRewrite.create(cuClassChanged.getAST());
-
-								TypeDeclaration typeDeclClassChanged = (TypeDeclaration) cuClassChanged.types().get(0); 
-								TypeDeclaration typeNewName = (TypeDeclaration) cuTarget.types().get(0);
-								cuClassChanged.accept(new CHtypeVisitor(rewrite,classSourceName,typeDeclClassChanged,classTargetName));
-								//Document doc= new Document(typeDeclClassChanged.toString());
-								Document doc= new Document(ClassChangedCU.getSource());
-								TextEdit edits = rewrite.rewriteAST(doc, null);
-								try {
-								edits.apply(doc);
-								} catch (MalformedTreeException e) {
-								e.printStackTrace();
-								} catch (BadLocationException e) {
-								e.printStackTrace();
-								}
-								ClassChangedCU.getBuffer().setContents(doc.get());
-								cuClassChanged.accept(new ASTVisitor() {
-									public boolean visit(MethodDeclaration node)
-									{
-										//a MODIFIER
-										importValueTarget = node.getRoot().toString();
-
-										try {
-											targetJavaElements = typeTarget.getChildren();
-											targetMethod = new IMethod[targetJavaElements.length];
-
-											for(int i=0; i < targetJavaElements.length;++i)
-											{
-												if(targetJavaElements[i].getElementType()==IJavaElement.METHOD)							
-													targetMethod[i] = (IMethod) targetJavaElements[i];		
-											}
-										} catch (JavaModelException e) {
-											// TODO Auto-generated catch block
-											e.printStackTrace();
-										}
-
-
-										return true;
-									}
-									public boolean visit(MethodInvocation node)
-									{
-										try {
-											targetJavaElements = typeTarget.getChildren();
-											targetMethod = new IMethod[targetJavaElements.length];
-
-											for(int i=0; i < targetJavaElements.length;++i)
-											{
-												if(targetJavaElements[i].getElementType()==IJavaElement.METHOD)							
-													targetMethod[i] = (IMethod) targetJavaElements[i];		
-											}
-										} catch (JavaModelException e) {
-											// TODO Auto-generated catch block
-											e.printStackTrace();
-										}
-
-
-										return true;
-									}
-								});
+								final CompilationUnit cuClassChanged = (CompilationUnit) parserClassChanged.createAST(null);*/
 								
+								IPackageFragment[] packages = javaProject.getPackageFragments();
+						        for (IPackageFragment mypackage : packages) {
+						            // Package fragments include all packages in the
+						            // classpath
+						            // We will only look at the package from the source
+						            // folder
+						            // K_BINARY would include also included JARS, e.g.
+						            // rt.jar
+						            if (mypackage.getKind() == IPackageFragmentRoot.K_SOURCE) {
+						               //יי System.out.println("Package " + mypackage.getElementName());
+						            	for (ICompilationUnit unit : mypackage.getCompilationUnits()) {
+
+						            		ASTParser parserClassChanged = ASTParser.newParser(AST.JLS8);
+						            		parserClassChanged.setSource(unit);
+						            		parserClassChanged.setKind(ASTParser.K_COMPILATION_UNIT);
+						            		parserClassChanged.setResolveBindings(true); // we need bindings later on
+						            		CompilationUnit cuClassChanged = (CompilationUnit) parserClassChanged.createAST(null);
+						            		cuClassChanged.recordModifications();
+						            		rewrite = ASTRewrite.create(cuClassChanged.getAST());
+						            		TypeDeclaration typeDeclClassChanged = (TypeDeclaration) cuClassChanged.types().get(0); 
+						            		boolean isThereAChange = false;
+						            		cuClassChanged.accept(new CHtypeVisitor(rewrite,classSourceName,typeDeclClassChanged,classTargetName,typeTarget,isThereAChange));
+						            		//Document doc= new Document(typeDeclClassChanged.toString());
+						            			Document doc= new Document(unit.getSource());
+						            			TextEdit edits = rewrite.rewriteAST(doc, null);
+						            			if (edits.getLength()>0){
+						            			try {
+						            				edits.apply(doc);
+						            			} catch (MalformedTreeException e) {
+						            				e.printStackTrace();
+						            			} catch (BadLocationException e) {
+						            				e.printStackTrace();
+						            			}
+							            			unit.getBuffer().setContents(doc.get());
+							            			IImportDeclaration[] test = unit.getImports();
+							            			boolean parentFound = false;
+							            			for(int u = 0; u<test.length;++u){
+							            				String line = test[u].toString().split(" ")[1];
+							            				if(line.equals(temp))
+							            					test[u].delete(true, monitor);
+							            				else if(line.equals(tempT)){
+							            					parentFound = true;							            					
+							            				}
+						            				}
+							            			if(!parentFound)
+							            				unit.createImport(tempT, null,monitor);
+						            		}
+						            	}
+
+						            }
+
+						        }
+								
+								
+							
 								classCU.delete(true, monitor);
+								
 
 								/*RenameCompilationUnitProcessor processorR = new RenameCompilationUnitProcessor(classCU);
 												processorR.setUpdateReferences(true);
