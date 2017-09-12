@@ -11,7 +11,8 @@ public class ProjectSelectionException extends Exception  {
 	 }
 	 
 	 public ProjectSelectionException(){
-		 super("Select a project and execute again");
+		 //super("Select a project and execute again");
+		 super("Select the java source folder of a project and execute again");
 	 }
 
 

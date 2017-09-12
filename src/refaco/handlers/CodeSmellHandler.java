@@ -18,17 +18,25 @@ import org.apache.commons.io.FileUtils;
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.IJobChangeEvent;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.core.runtime.jobs.JobChangeAdapter;
+import org.eclipse.jdt.core.IPackageFragment;
+import org.eclipse.jdt.core.IPackageFragmentRoot;
+import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
+import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
@@ -102,6 +110,7 @@ public class CodeSmellHandler extends AbstractHandler {
 		this.codeSmells = codeSmells;
 	}
 
+	private String javaDirectory;
 	@Override
 	public Object execute(ExecutionEvent event) throws ExecutionException {
 
@@ -109,11 +118,59 @@ public class CodeSmellHandler extends AbstractHandler {
 			// Get the tableview (initialize the View with the previous project
 			// selected by the user)
 			
-			SourceFolderTitleAreaDialog myDialog = new SourceFolderTitleAreaDialog(Display.getCurrent().getActiveShell());
+			javaDirectory = null;
+			IWorkbenchWindow window = HandlerUtil.getActiveWorkbenchWindow(event);
+		    IWorkbenchPage activePage = window.getActivePage();
+		    ISelection selection = activePage.getSelection();
+		    if (selection != null) {
+		    	//System.out.println("Got selection");
+		    	if (selection instanceof IStructuredSelection) {
+		    		//System.out.println("Got a structured selection");
+		    		Object element = ((IStructuredSelection) selection).getFirstElement();
+		    		if (element instanceof IPackageFragmentRoot){
+		    			IPackageFragmentRoot project = (IPackageFragmentRoot)((IAdaptable)element).getAdapter(IPackageFragmentRoot.class);
+		    				IResource rs = null;
+							try {
+								rs = project.getCorrespondingResource();
+							} catch (JavaModelException e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+							}
+		    				javaDirectory = rs.getLocation().toPortableString();
+		    				//System.out.println(project.getSourceAttachmentRootPath());
+		    		}
+		    		/*this works, but causes problem when concatenating the path for refgen
+		    		 * The source does not exist R:/git/ganttWkspaceSoccer/ganttproject/ganttproject/src/net/sourceforge/ganttproject/actionnet/sourceforge/ganttproject/action/
+		    		 * net.sourceforge.ganttproject.action
+		    		 * 
+		    		 * else if (element instanceof IPackageFragment)
+		    		{
+		    			IPackageFragment project = (IPackageFragment)((IAdaptable)element).getAdapter(IPackageFragment.class);
+	    				IResource rs = null;
+						try {
+							rs = project.getCorrespondingResource();
+						} catch (JavaModelException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+	    				javaDirectory = rs.getLocation().toPortableString();
+		    		}*/
+		    	}
+		    }
+			//SourceFolderTitleAreaDialog myDialog = new SourceFolderTitleAreaDialog(Display.getCurrent().getActiveShell());
 			CodeSmellTableView view = initSelectionView(event);
 
-			String src = "/src/";
-			String alternative = null;
+			if (javaDirectory!=null){
+				File varTmpDir = new File(javaDirectory);
+				if (varTmpDir.exists()==false){
+					throw new ProjectSelectionException();
+				}
+			}
+			else{
+				throw new ProjectSelectionException();
+			}
+			String src= javaDirectory.substring(javaDirectory.lastIndexOf("/")+1);
+/*			String alternative = null;
 			File varTmpDir = new File(projectData.getPath()+ src);
 			if (varTmpDir.exists()==false){
 				alternative = new String(myDialog.open());
@@ -121,6 +178,7 @@ public class CodeSmellHandler extends AbstractHandler {
 					src = new String("/"+alternative+"/");
 				}
 			}		
+*/			
 			 javasrc = src;//this variable is used in the application of collapse hierarchy
 			// Job for execute RefGen in background
 			Job job = new Job("RefGen") {
@@ -129,7 +187,7 @@ public class CodeSmellHandler extends AbstractHandler {
 						int totalUnitsOfWork = 250;
 						monitor.beginTask("Running RefGen", totalUnitsOfWork);
 						// Call to execute SACO
-						executeReACO(view.getProjectData(), monitor, javasrc);
+						executeReACO(view.getProjectData(), monitor, javaDirectory);
 
 						// read the results from file
 						monitor.subTask("Processing the results..");
@@ -243,10 +301,10 @@ public class CodeSmellHandler extends AbstractHandler {
 			if(projectData.getPackageName() != null){
 				// Analyze a package
 				String packageFormat = projectData.getPackageName().replace('.', '/');
-				pathToAnalyze = projectData.getPath() + src + packageFormat + "/";
+				pathToAnalyze =  src + packageFormat + "/";
 			}else{
 				// Analyze the src folder
-				pathToAnalyze = projectData.getPath() + src;
+				pathToAnalyze =  src;
 			}
 			prepareReACOResources(projectData.getPath(), pathToAnalyze);
 
@@ -254,7 +312,7 @@ public class CodeSmellHandler extends AbstractHandler {
 
 			// execute the command
 			Process proc;
-			String command = "java -jar " + "RefGen.jar  " + "config.txt 0"+ projectData.getName();
+			String command = "java -jar " + "RefGen.jar  " + "config.prop 0"+ projectData.getName();
 			proc = Runtime.getRuntime().exec(command, null, new File(projectData.getPath() + JARFOLDER));
 
 			// get ErrorStream
@@ -327,7 +385,7 @@ public class CodeSmellHandler extends AbstractHandler {
 		boolean bool = ser.delete();
 		ses.delete();*/
 		// write the configuration file
-		Path file = Paths.get(path + "/refgen/" + "config.txt");
+		Path file = Paths.get(path + "/refgen/" + "config.prop");
 		Files.write(file, lines, Charset.forName("UTF-8"));
 
 		// copy ReACO library to file 
