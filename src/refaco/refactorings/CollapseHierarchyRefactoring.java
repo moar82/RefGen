@@ -327,26 +327,10 @@ public class CollapseHierarchyRefactoring extends refaco.refactorings.Refactorin
 									}
 
 								}
-
-								//update the references to the parent class
-								//IPackageFragment classChangedPackage = rootpackage.getPackageFragment("net.sourceforge.ganttproject");
-								//ICompilationUnit ClassChangedCU = classChangedPackage.getCompilationUnit("GanttProject" + ".java");
-								/*ASTParser parserClassChanged = ASTParser.newParser(AST.JLS8);
-								parserClassChanged.setSource(ClassChangedCU);
-								parserClassChanged.setKind(ASTParser.K_COMPILATION_UNIT);
-								parserClassChanged.setResolveBindings(true); // we need bindings later on
-								final CompilationUnit cuClassChanged = (CompilationUnit) parserClassChanged.createAST(null);*/
 								
 								IPackageFragment[] packages = javaProject.getPackageFragments();
 						        for (IPackageFragment mypackage : packages) {
-						            // Package fragments include all packages in the
-						            // classpath
-						            // We will only look at the package from the source
-						            // folder
-						            // K_BINARY would include also included JARS, e.g.
-						            // rt.jar
 						            if (mypackage.getKind() == IPackageFragmentRoot.K_SOURCE) {
-						               //יי System.out.println("Package " + mypackage.getElementName());
 						            	for (ICompilationUnit unit : mypackage.getCompilationUnits()) {
 
 						            		ASTParser parserClassChanged = ASTParser.newParser(AST.JLS8);
@@ -359,7 +343,6 @@ public class CollapseHierarchyRefactoring extends refaco.refactorings.Refactorin
 						            		TypeDeclaration typeDeclClassChanged = (TypeDeclaration) cuClassChanged.types().get(0); 
 						            		boolean isThereAChange = false;
 						            		cuClassChanged.accept(new CHtypeVisitor(rewrite,classSourceName,typeDeclClassChanged,classTargetName,typeTarget,isThereAChange));
-						            		//Document doc= new Document(typeDeclClassChanged.toString());
 						            			Document doc= new Document(unit.getSource());
 						            			TextEdit edits = rewrite.rewriteAST(doc, null);
 						            			if (edits.getLength()>0){
@@ -389,22 +372,7 @@ public class CollapseHierarchyRefactoring extends refaco.refactorings.Refactorin
 						            }
 
 						        }
-								
-								
-							
 								classCU.delete(true, monitor);
-								
-
-								/*RenameCompilationUnitProcessor processorR = new RenameCompilationUnitProcessor(classCU);
-												processorR.setUpdateReferences(true);
-												processorR.setNewElementName(classTargetName+".java");*/
-								/*RenameRefactoring fRefactoring = new RenameRefactoring(processorR);
-												RefactoringStatus statusR = new RefactoringStatus();
-												fRefactoring.checkFinalConditions(monitor);
-												//  final PerformRefactoringOperation operation = new PerformRefactoringOperation(fRefactoring, CheckConditionsOperation.ALL_CONDITIONS);
-												Change fChange= fRefactoring.createChange(monitor);
-												fChange.initializeValidationData(monitor);
-												fChange.perform(monitor);*/
 
 							}
 						}

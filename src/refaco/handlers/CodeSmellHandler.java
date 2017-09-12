@@ -169,16 +169,7 @@ public class CodeSmellHandler extends AbstractHandler {
 			else{
 				throw new ProjectSelectionException();
 			}
-			String src= javaDirectory.substring(javaDirectory.lastIndexOf("/")+1);
-/*			String alternative = null;
-			File varTmpDir = new File(projectData.getPath()+ src);
-			if (varTmpDir.exists()==false){
-				alternative = new String(myDialog.open());
-				if (alternative!=null){
-					src = new String("/"+alternative+"/");
-				}
-			}		
-*/			
+			String src= javaDirectory.substring(javaDirectory.lastIndexOf("/")+1);		
 			 javasrc = src;//this variable is used in the application of collapse hierarchy
 			// Job for execute RefGen in background
 			Job job = new Job("RefGen") {
@@ -466,13 +457,6 @@ public class CodeSmellHandler extends AbstractHandler {
 
 				getCodeSmells(nameToInt(antiPatternsType), path, antiPatternsNumber);
 			}
-		/*	for (int i = 0; i < numCodeSmells.length; i++) {
-				line = lines.get(firstRefactoringLine + offsetCodeSmells[i]);
-				numCodeSmells[i] = Integer.parseInt(line.substring(0, line.indexOf(" ")));
-				if (numCodeSmells[i] > 0){
-					getCodeSmells(i, path, numCodeSmells[i]);
-				}		
-			}*/
 		}
 	}
 
