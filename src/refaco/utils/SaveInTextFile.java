@@ -20,6 +20,12 @@ public class SaveInTextFile extends refaco.refactorings.Refactoring {
 		super(_refactoringData, _projectName);
 		// TODO Auto-generated constructor stub
 	}
+	/**
+	 * Saves a .log file concatenating the name of the project
+	 * from the workspace.
+	 * @param fileName
+	 * @param messageError
+	 */
 	public void saving(String fileName,String messageError) {
 	// Get the IProject from the projectName
 	IWorkspace workspace = ResourcesPlugin.getWorkspace();
@@ -29,7 +35,8 @@ public class SaveInTextFile extends refaco.refactorings.Refactoring {
 	 BufferedWriter writer = null;
      try {
          //create a temporary file
-         File logFile = new File(project.getLocation() + fileName);
+         File logFile = new File(project.getLocation() + fileName+
+        		 ".txt");
 
          writer = new BufferedWriter(new FileWriter(logFile));
          writer.write(messageError);

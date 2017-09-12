@@ -33,6 +33,7 @@ import org.eclipse.ltk.ui.refactoring.RefactoringWizardOpenOperation;
 import org.eclipse.swt.widgets.Display;
 import refaco.RefactoringData;
 import refaco.exceptions.RefactoringException;
+import refaco.handlers.CodeSmellHandler;
 import refaco.utils.SaveInTextFile;
 
 /**
@@ -86,7 +87,7 @@ public class IntroduceParameterObjectRefactoring extends refaco.refactorings.Ref
 
 				// Get the IMethod
 				IJavaProject javaProject = JavaCore.create(project);
-				IPackageFragmentRoot rootpackage = javaProject.getPackageFragmentRoot(project.getFolder("src"));
+				IPackageFragmentRoot rootpackage = javaProject.getPackageFragmentRoot(project.getFolder(CodeSmellHandler.javasrc));
 				IPackageFragment classPackage = rootpackage.getPackageFragment(packageName);
 				ICompilationUnit classCU = classPackage.getCompilationUnit(className + ".java");
 				IType type = classCU.getType(className);
