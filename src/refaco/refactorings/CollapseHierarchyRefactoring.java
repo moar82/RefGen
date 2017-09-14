@@ -340,7 +340,13 @@ public class CollapseHierarchyRefactoring extends refaco.refactorings.Refactorin
 						            		CompilationUnit cuClassChanged = (CompilationUnit) parserClassChanged.createAST(null);
 						            		cuClassChanged.recordModifications();
 						            		rewrite = ASTRewrite.create(cuClassChanged.getAST());
-						            		TypeDeclaration typeDeclClassChanged = (TypeDeclaration) cuClassChanged.types().get(0); 
+						            		TypeDeclaration typeDeclClassChanged;
+											try {
+												typeDeclClassChanged = (TypeDeclaration) cuClassChanged.types().get(0);
+											} catch (java.lang.ClassCastException e1) {
+												//e1.printStackTrace();
+												continue;
+											} 
 						            		boolean isThereAChange = false;
 						            		cuClassChanged.accept(new CHtypeVisitor(rewrite,classSourceName,typeDeclClassChanged,classTargetName,typeTarget,isThereAChange));
 						            			Document doc= new Document(unit.getSource());
