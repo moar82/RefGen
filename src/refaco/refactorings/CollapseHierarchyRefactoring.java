@@ -178,7 +178,7 @@ public class CollapseHierarchyRefactoring extends refaco.refactorings.Refactorin
 											members[i] = (IMember) javaElements[i];		
 											field[i] = (IField) members[i];
 										}
-										else
+										else if(javaElements[i].getElementType()==IJavaElement.METHOD)
 										{								
 											members[i] = (IMember) javaElements[i];	
 											method[i] = (IMethod) javaElements[i];
@@ -212,7 +212,7 @@ public class CollapseHierarchyRefactoring extends refaco.refactorings.Refactorin
 											members[i] = (IMember) javaElements[i];		
 											field[i] = (IField) members[i];
 										}
-										else
+										else if(javaElements[i].getElementType()==IJavaElement.METHOD)
 										{								
 											members[i] = (IMember) javaElements[i];	
 											method[i] = (IMethod) javaElements[i];
