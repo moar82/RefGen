@@ -165,7 +165,7 @@ public class InlineClassRefactoring extends refaco.refactorings.Refactoring{
 						if( field.length > 0)
 						{
 							for (int j = 0; j < field.length ; ++j)
-								if(field[j] !=null)
+								if(field[j] !=null && !field[j].exists())
 									field[j].move(typeTarget, null, null, false, monitor);
 						}
 					}
