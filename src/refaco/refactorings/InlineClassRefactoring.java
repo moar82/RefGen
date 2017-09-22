@@ -1,9 +1,5 @@
 package refaco.refactorings;
 
-import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.List;
-
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.IWorkspaceRoot;
@@ -11,57 +7,31 @@ import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
-import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IField;
+import org.eclipse.jdt.core.IImportDeclaration;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
-import org.eclipse.jdt.core.IMember;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IPackageFragment;
 import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaCore;
-import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.dom.AST;
-import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.ASTParser;
 import org.eclipse.jdt.core.dom.ASTVisitor;
-import org.eclipse.jdt.core.dom.Block;
 import org.eclipse.jdt.core.dom.CompilationUnit;
-import org.eclipse.jdt.core.dom.Expression;
-import org.eclipse.jdt.core.dom.FieldAccess;
-import org.eclipse.jdt.core.dom.IVariableBinding;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
-import org.eclipse.jdt.core.dom.MethodInvocation;
-import org.eclipse.jdt.core.dom.Modifier;
-import org.eclipse.jdt.core.dom.VariableDeclarationStatement;
-import org.eclipse.jdt.core.refactoring.IJavaRefactorings;
-import org.eclipse.jdt.core.refactoring.descriptors.ExtractClassDescriptor;
-import org.eclipse.jdt.core.refactoring.descriptors.InlineMethodDescriptor;
-import org.eclipse.jdt.core.refactoring.descriptors.MoveDescriptor;
-import org.eclipse.jdt.core.refactoring.descriptors.MoveMethodDescriptor;
-import org.eclipse.jdt.core.refactoring.descriptors.PushDownDescriptor;
-import org.eclipse.jdt.core.refactoring.descriptors.ExtractClassDescriptor.Field;
-import org.eclipse.jdt.internal.corext.codemanipulation.CodeGenerationSettings;
-import org.eclipse.jdt.internal.corext.refactoring.code.InlineMethodRefactoring;
-import org.eclipse.jdt.internal.corext.refactoring.code.InlineMethodRefactoring.Mode;
-import org.eclipse.jdt.internal.corext.refactoring.structure.MoveInstanceMethodProcessor;
-import org.eclipse.jdt.internal.corext.refactoring.util.RefactoringASTParser;
-import org.eclipse.jdt.internal.ui.javaeditor.ASTProvider;
-import org.eclipse.jdt.internal.ui.refactoring.ExtractClassWizard;
-import org.eclipse.ltk.core.refactoring.Change;
-import org.eclipse.ltk.core.refactoring.Refactoring;
-import org.eclipse.ltk.core.refactoring.RefactoringContribution;
-import org.eclipse.ltk.core.refactoring.RefactoringCore;
-import org.eclipse.ltk.core.refactoring.RefactoringStatus;
-import org.eclipse.ltk.core.refactoring.participants.ProcessorBasedRefactoring;
-import org.eclipse.ltk.ui.refactoring.RefactoringWizardOpenOperation;
-import org.eclipse.swt.widgets.Display;
+import org.eclipse.jdt.core.dom.rewrite.ASTRewrite;
+import org.eclipse.jface.text.BadLocationException;
+import org.eclipse.jface.text.Document;
+import org.eclipse.text.edits.MalformedTreeException;
+import org.eclipse.text.edits.TextEdit;
 
 import refaco.RefactoringData;
 import refaco.exceptions.RefactoringException;
 import refaco.handlers.CodeSmellHandler;
+import refaco.utils.CHtypeVisitor;
 import refaco.utils.SaveInTextFile;
 
 /**
@@ -69,7 +39,6 @@ import refaco.utils.SaveInTextFile;
  * @author Christian Kabulo (POLYMORSE)
  *
  */
-
 public class InlineClassRefactoring extends refaco.refactorings.Refactoring{
 	
 	IJavaElement[] methodElements;
@@ -77,56 +46,59 @@ public class InlineClassRefactoring extends refaco.refactorings.Refactoring{
 	 IField[] field;
 	 IMethod[] method;
 	SaveInTextFile saved;
-
 	public InlineClassRefactoring(RefactoringData _refactoringData, String _projectName) {
 		super(_refactoringData, _projectName);
 		saved = new SaveInTextFile(_refactoringData, _projectName);
-
 	}
-	
-	
 	public void apply() throws RefactoringException {
-		
-		final java.util.Random rand = new java.util.Random();
 		// Get the package and class name (Source)
-		// Get the package and class name (Source)
-				String temp = getRefactoringData().getClassSource();
-				int index = temp.lastIndexOf('.');
-				String packageSourceName = temp.substring(0, index);
-				String classSourceName = temp.substring(index + 1, temp.length());
-
+				String tempSrcName = getRefactoringData().getClassSource();
+				int index = tempSrcName.lastIndexOf('.');
+				String classSourceName;
+				String packageSourceName;
+				if (index==-1){
+					classSourceName = tempSrcName;
+					packageSourceName = IPackageFragment.DEFAULT_PACKAGE_NAME;
+				}
+				else{
+					packageSourceName = tempSrcName.substring(0, index);
+					classSourceName = tempSrcName.substring(index + 1, tempSrcName.length());	
+				}
 				// Get the package and class name (Target)
-				temp = getRefactoringData().getClassTarget();
-				index = temp.lastIndexOf('.');
-				String packageTargetName = temp.substring(0, index);
-				String classTargetName = temp.substring(index + 1, temp.length());
-
+				tempSrcName = getRefactoringData().getClassTarget();
+				index = tempSrcName.lastIndexOf('.');
+				String classTargetName;
+				String packageTargetName;
+				if (index==-1){
+					classTargetName = tempSrcName;
+					packageTargetName = IPackageFragment.DEFAULT_PACKAGE_NAME;
+				}
+				else{
+				 packageTargetName = tempSrcName.substring(0, index);
+				 classTargetName = tempSrcName.substring(index + 1, tempSrcName.length());
+				}
 				// Get the IProject from the projectName
 				IWorkspace workspace = ResourcesPlugin.getWorkspace();
 				IWorkspaceRoot root = workspace.getRoot();
 				IProject project = root.getProject(getProjectName());
-		String fieldNames;
 		try {
 			if (project.isNatureEnabled("org.eclipse.jdt.core.javanature")) {
-				
 				// Get the IType
 				IJavaProject javaProject = JavaCore.create(project);
 				IPackageFragmentRoot rootpackage = javaProject.getPackageFragmentRoot(project.getFolder(CodeSmellHandler.javasrc));
 				IPackageFragment classPackage = rootpackage.getPackageFragment(packageSourceName);
-				ICompilationUnit classCU = classPackage.getCompilationUnit(classSourceName + ".java");
-				IType typeSource = classCU.getType(classSourceName);
+				ICompilationUnit srcClassICU = classPackage.getCompilationUnit(classSourceName + ".java");
+				IType typeSource = srcClassICU.getType(classSourceName);
 				// Get the Class Target
 				IPackageFragment classTargetPackage = rootpackage.getPackageFragment(packageTargetName);
-				ICompilationUnit classTargetCU = classTargetPackage.getCompilationUnit(classTargetName + ".java");
-				IType typeTarget = classTargetCU.getType(classTargetName);
+				ICompilationUnit tgtClassICU = classTargetPackage.getCompilationUnit(classTargetName + ".java");
+				IType typeTarget = tgtClassICU.getType(classTargetName);
 				if (typeSource != null) {
 					ASTParser parser = ASTParser.newParser(AST.JLS8);
-					parser.setSource(classCU);
+					parser.setSource(srcClassICU);
 					parser.setKind(ASTParser.K_COMPILATION_UNIT);
 			        final CompilationUnit cu = (CompilationUnit) parser.createAST(null);
-			        
 			        cu.accept(new ASTVisitor() {
-						
 						public boolean visit(MethodDeclaration node) {
 							 try
 							 {
@@ -165,30 +137,102 @@ public class InlineClassRefactoring extends refaco.refactorings.Refactoring{
 						if( field.length > 0)
 						{
 							for (int j = 0; j < field.length ; ++j)
-								if(field[j] !=null && !field[j].exists())
+								if(field[j] !=null && field[j].exists())
 									field[j].move(typeTarget, null, null, false, monitor);
 						}
 					}
-					
 					if(method != null)
 					{
 						if( method.length > 0)
 						{
 							for (int j = 0; j < method.length ; ++j)
 								if(method[j] !=null)
-									if(!typeSource.hasChildren() )
-									{
+									//if(!typeSource.hasChildren() )
+									//{
 										method[j].move(typeTarget, null, null, false, monitor);
 										canDelete = true;
-									}
+									//}
 
-									else{
+									/*else{
 										saved.saving("InlineClassRefactoring", "InlineClassRefactoring cannot be applied cause there is only a constructor in the class ");
 										canDelete = false;
-									}
+									}*/
 						}
+						//for update method references (replace deleted child class with parent class type) 
+						ASTRewrite rewrite;
+						// Get the package and class name (Target)
+						String tempTgtName = getRefactoringData().getClassTarget();
+						IPackageFragment[] packages = javaProject.getPackageFragments();
+				        for (IPackageFragment mypackage : packages) {
+				            if (mypackage.getKind() == IPackageFragmentRoot.K_SOURCE) {
+				            	for (ICompilationUnit aICUnit : mypackage.getCompilationUnits()) {
+				            		ASTParser parserClassChanged = ASTParser.newParser(AST.JLS8);
+				            		parserClassChanged.setSource(aICUnit);
+				            		parserClassChanged.setKind(ASTParser.K_COMPILATION_UNIT);
+				            		parserClassChanged.setResolveBindings(true); // we need bindings later on
+				            		CompilationUnit cuClassChanged = (CompilationUnit) parserClassChanged.createAST(null);
+				            		cuClassChanged.recordModifications();
+				            		rewrite = ASTRewrite.create(cuClassChanged.getAST());
+				            		cuClassChanged.accept(new CHtypeVisitor(rewrite,classSourceName,classTargetName));
+				            			Document doc= new Document(aICUnit.getSource());
+				            			TextEdit edits = rewrite.rewriteAST(doc, null);
+				            			if (edits.getLength()>0){
+				            			try {
+				            				edits.apply(doc);
+				            			} catch (MalformedTreeException e) {
+				            				e.printStackTrace();
+				            			} catch (BadLocationException e) {
+				            				e.printStackTrace();
+				            			}
+					            			aICUnit.getBuffer().setContents(doc.get());
+					            			IImportDeclaration[] iImportDclaICUnit = aICUnit.getImports();
+					            			boolean targetFound = false;
+					            			for(int u = 0; u<iImportDclaICUnit.length;++u){
+					            				String line = iImportDclaICUnit[u].toString().split(" ")[1];
+					            				if(line.equals(tempSrcName))
+					            					iImportDclaICUnit[u].delete(true, monitor);
+					            				else if(line.equals(tempTgtName)){
+					            					targetFound = true;							            					
+					            				}
+				            				}
+					            			if(!targetFound)
+					            				//if they belong to the same package skip
+				            					if (mypackage.getElementName().equals(packageTargetName)==false)
+				            						aICUnit.createImport(tempTgtName, null,monitor);
+					            			aICUnit.save(null, true);
+					            			aICUnit.reconcile(ICompilationUnit.NO_AST, false, null, null);
+				            		}
+				            	}
+
+				            }
+				        }
+						//We need to add the packages of the deleted class to the target class 
+				        IImportDeclaration[] sourceClassImports = srcClassICU.getImports();
+				        IImportDeclaration[] targetClassImports = tgtClassICU.getImports();
+				        if (typeTarget != null && sourceClassImports!=null) {
+				        	parser.setSource(tgtClassICU);
+				        	parser.setKind(ASTParser.K_COMPILATION_UNIT);
+				        	//iterate imports of target class
+				        	for(int u = 0; u<sourceClassImports.length;++u){
+				        		IImportDeclaration srcDeclaration=  sourceClassImports[u];
+				        		boolean importExists = false;
+				        		for (int v=0; v<targetClassImports.length;++v){
+				        			IImportDeclaration tgtDeclaration=  targetClassImports[v];
+				        			if (srcDeclaration.equals(tgtDeclaration)){
+				        				importExists=true;
+				        				break;
+				        			}
+				        		}
+				        		// this line does not work: ImportDeclaration sourceNode= ASTNodeSearchUtil.getImportDeclarationNode(srcDeclaration, tgtClassCU);
+				        		if (importExists==false){
+				        			String line = srcDeclaration.toString().split(" ")[1];
+				        			tgtClassICU.createImport(line, null,monitor);
+				        		}
+				        	}
+				        }
+				        
 						if(canDelete)
-						classCU.delete(true, monitor);
+							srcClassICU.delete(true, monitor);
 					}
 					else{
 						System.err.println("Class Empty");

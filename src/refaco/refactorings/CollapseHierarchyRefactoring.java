@@ -327,7 +327,7 @@ public class CollapseHierarchyRefactoring extends refaco.refactorings.Refactorin
 									}
 
 								}
-								
+								//for update method references (replace deleted child class with parent class type) 
 								IPackageFragment[] packages = javaProject.getPackageFragments();
 						        for (IPackageFragment mypackage : packages) {
 						            if (mypackage.getKind() == IPackageFragmentRoot.K_SOURCE) {
@@ -340,15 +340,7 @@ public class CollapseHierarchyRefactoring extends refaco.refactorings.Refactorin
 						            		CompilationUnit cuClassChanged = (CompilationUnit) parserClassChanged.createAST(null);
 						            		cuClassChanged.recordModifications();
 						            		rewrite = ASTRewrite.create(cuClassChanged.getAST());
-						            		/*TypeDeclaration typeDeclClassChanged;
-											try {
-												typeDeclClassChanged = (TypeDeclaration) cuClassChanged.types().get(0);
-											} catch (java.lang.ClassCastException e1) {
-												//e1.printStackTrace();
-												continue;
-											} */
-						            		boolean isThereAChange = false;
-						            		cuClassChanged.accept(new CHtypeVisitor(rewrite,classSourceName,null,classTargetName,typeTarget,isThereAChange));
+						            		cuClassChanged.accept(new CHtypeVisitor(rewrite,classSourceName,classTargetName));
 						            			Document doc= new Document(unit.getSource());
 						            			TextEdit edits = rewrite.rewriteAST(doc, null);
 						            			if (edits.getLength()>0){
