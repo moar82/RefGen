@@ -1,5 +1,6 @@
 package refaco.utils;
 
+import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTVisitor;
 import org.eclipse.jdt.core.dom.MethodInvocation;
@@ -12,25 +13,32 @@ public class CHtypeVisitor extends ASTVisitor {
 	private ASTRewrite rewrite;
 	private String childTypeName;
 	private String targetTypeName;
+	private IMethod[] methods;
 	/**
 	 * @param rewrite
 	 * @param childTypeName
 	 * @param targetTypeNewName
+	 * @param methods methods that were transfered to the targettype
 	 */
-	public CHtypeVisitor(ASTRewrite rewrite, String childTypeName,String targetTypeNewName) {
+	public CHtypeVisitor(ASTRewrite rewrite, String childTypeName,String targetTypeNewName, IMethod[] methods) {
 		super();
 		this.rewrite = rewrite;
 		this.childTypeName = childTypeName;
 		this.targetTypeName = targetTypeNewName;
+		this.methods = methods;
 	}
 
 	@Override
 	public void endVisit(MethodInvocation node) {
-		if (node.toString().contains("printTrace")){
-			AST ast= rewrite.getAST();
-			SimpleName parentName = ast.newSimpleName(targetTypeName);
-			//node.setExpression(parentName);
-			rewrite.set(node, MethodInvocation.EXPRESSION_PROPERTY, parentName,null);
+		if (methods==null)//IN CH this is not necessary but in IC it is
+			return;
+		for (IMethod aMethod: methods){
+			if (aMethod.getElementName().equals(node.getName().getIdentifier())){
+				AST ast= rewrite.getAST();
+				SimpleName parentName = ast.newSimpleName(targetTypeName);
+				//node.setExpression(parentName);
+				rewrite.set(node, MethodInvocation.EXPRESSION_PROPERTY, parentName,null);
+			}
 		}
 	}
 
