@@ -1,8 +1,6 @@
 package refaco.refactorings;
 
 import java.lang.reflect.Modifier;
-import java.util.ArrayList;
-import java.util.List;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.IWorkspaceRoot;
@@ -11,31 +9,26 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
-import org.eclipse.jdt.core.Flags;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IField;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
-import org.eclipse.jdt.core.ILocalVariable;
 import org.eclipse.jdt.core.IMember;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IPackageFragment;
 import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.eclipse.jdt.core.IType;
-import org.eclipse.jdt.core.ITypeParameter;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTParser;
 import org.eclipse.jdt.core.dom.ASTVisitor;
 import org.eclipse.jdt.core.dom.CompilationUnit;
-import org.eclipse.jdt.core.dom.IMethodBinding;
 import org.eclipse.jdt.core.dom.IVariableBinding;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
 import org.eclipse.jdt.core.dom.MethodInvocation;
 import org.eclipse.jdt.core.refactoring.IJavaRefactorings;
 import org.eclipse.jdt.core.refactoring.descriptors.ExtractClassDescriptor;
-import org.eclipse.jdt.core.refactoring.descriptors.MoveMethodDescriptor;
 import org.eclipse.jdt.internal.corext.codemanipulation.CodeGenerationSettings;
 import org.eclipse.jdt.internal.corext.refactoring.structure.MoveInstanceMethodProcessor;
 import org.eclipse.jdt.internal.corext.refactoring.structure.MoveStaticMembersProcessor;
@@ -43,7 +36,6 @@ import org.eclipse.ltk.core.refactoring.Change;
 import org.eclipse.ltk.core.refactoring.Refactoring;
 import org.eclipse.ltk.core.refactoring.RefactoringContribution;
 import org.eclipse.ltk.core.refactoring.RefactoringCore;
-import org.eclipse.ltk.core.refactoring.RefactoringStatus;
 import org.eclipse.ltk.core.refactoring.participants.ProcessorBasedRefactoring;
 import refaco.RefactoringData;
 import refaco.exceptions.RefactoringException;
@@ -196,14 +188,14 @@ public class ExtractClassRefactoring extends refaco.refactorings.Refactoring {
 					IPackageFragment classTargetPackage = rootpackage.getPackageFragment(packageTargetName);
 					ICompilationUnit classTargetCU = classTargetPackage.getCompilationUnit(classTargetName + ".java");
 					IType typeTarget = classTargetCU.getType(classTargetName);
-					if (typeSource != null)
+					/*if (typeSource != null)
 					{
 						ASTParser parserTarget = ASTParser.newParser(AST.JLS8);
 						parserTarget.setSource(classTargetCU);
 						parserTarget.setKind(ASTParser.K_COMPILATION_UNIT);
 						parserTarget.setResolveBindings(true); // we need bindings later on
 						final CompilationUnit cuTarget = (CompilationUnit) parserTarget.createAST(null);
-					}
+					}*/
 					
 					RefactoringContribution contributionExtract = RefactoringCore
 							.getRefactoringContribution(IJavaRefactorings.EXTRACT_CLASS);
@@ -218,7 +210,7 @@ public class ExtractClassRefactoring extends refaco.refactorings.Refactoring {
 					IProgressMonitor monitorExtract = new NullProgressMonitor();
 					try {
 						refactoringExtract.checkInitialConditions(monitorExtract);
-						RefactoringStatus statusExtract = new RefactoringStatus();
+						//RefactoringStatus statusExtract = new RefactoringStatus();
 						refactoringExtract.checkFinalConditions(monitorExtract);
 						Change change = refactoringExtract.createChange(monitorExtract);
 						change.initializeValidationData(monitorExtract);
@@ -238,6 +230,7 @@ public class ExtractClassRefactoring extends refaco.refactorings.Refactoring {
 							} catch (JavaModelException e) {
 								e.printStackTrace();
 							}
+							boolean methodFound =false;
 							try {
 								if (project.isNatureEnabled("org.eclipse.jdt.core.javanature")) {
 									for(int u = 0; u<methods.length;u++){
@@ -245,10 +238,11 @@ public class ExtractClassRefactoring extends refaco.refactorings.Refactoring {
 										{
 											//match a method with the same number of parameters
 											int nbParam = methods[u].getParameters().length;
-											int nbParamMethod = methodAndParameters.split(",").length;
+											int nbParamMethod = methodAndParameters.length() - methodAndParameters.replace(",", "").length();
 											if (nbParam==nbParamMethod){
 												//here there is a problem with the parameters as they are not validated and the signature oudl be different
 												method_ = methods[u];
+												methodFound = true;
 												//validate if the method is static
 												if (Modifier.isStatic(method_.getFlags() ) ) {
 													// method is static method
@@ -285,13 +279,12 @@ public class ExtractClassRefactoring extends refaco.refactorings.Refactoring {
 														}
 													}
 													if (targetArgument != null){
-														refaco.refactorings.MoveInstanceMethodWizard wizard = new refaco.refactorings.MoveInstanceMethodWizard(
-																processor, refactoring, targetArgument);
-
-														RefactoringContribution contributionM = RefactoringCore
-																.getRefactoringContribution(IJavaRefactorings.MOVE_METHOD);
-														MoveMethodDescriptor descriptorM = (MoveMethodDescriptor) contributionM.createDescriptor();
-														RefactoringStatus status = new RefactoringStatus();
+														/*refaco.refactorings.MoveInstanceMethodWizard wizard = new refaco.refactorings.MoveInstanceMethodWizard(
+																processor, refactoring, targetArgument);*/
+														/*RefactoringContribution contributionM = RefactoringCore
+																.getRefactoringContribution(IJavaRefactorings.MOVE_METHOD);*/
+														//MoveMethodDescriptor descriptorM = (MoveMethodDescriptor) contributionM.createDescriptor();
+														//RefactoringStatus status = new RefactoringStatus();
 														refactoring.checkFinalConditions(monitorM);
 														//status = new RefactoringStatus();
 														Change changeM = refactoring.createChange(monitorM);
@@ -308,8 +301,9 @@ public class ExtractClassRefactoring extends refaco.refactorings.Refactoring {
 												break;
 											} 
 										}
-
-									}										
+									}
+									if (!methodFound)
+										System.out.println("Method "+ methodName + " Not found") ;
 								} else {
 									System.err.println("Nature disabled");
 
