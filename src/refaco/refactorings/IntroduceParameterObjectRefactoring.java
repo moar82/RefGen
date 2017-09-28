@@ -141,7 +141,7 @@ public class IntroduceParameterObjectRefactoring extends refaco.refactorings.Ref
 								break;
 						}
 */						descriptor.setClassName(name);
-						descriptor.setParameterName("Object");
+						descriptor.setParameterName("parameterObject");
 						descriptor.setPackageName(classPackage.getElementName());
 						descriptor.setProject(javaProject.getElementName());
 						descriptor.setMethod(method);
