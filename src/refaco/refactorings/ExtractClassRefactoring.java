@@ -1,6 +1,8 @@
 package refaco.refactorings;
 
 import java.lang.reflect.Modifier;
+import java.util.Arrays;
+
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.IWorkspaceRoot;
@@ -52,7 +54,7 @@ public class ExtractClassRefactoring extends refaco.refactorings.Refactoring {
 	IJavaElement[] javaElements;
 	 IField[] fields;
 	 IMethod[] targetMethod;
-	MoveMethodRefactoring move;
+	refaco.refactorings.Refactoring move;
 	SaveInTextFile saved;
 	String methodName = null;
 	IMethod[] method = null;
@@ -85,7 +87,7 @@ public class ExtractClassRefactoring extends refaco.refactorings.Refactoring {
 					}
 					parameters = methodAndParameters.substring(methodAndParameters.indexOf('(') +1,methodAndParameters.indexOf(')')).split(",");
 					if(parameters.length == 1 && parameters[0].length()==0)
-						parameters = null;
+						parameters = new String[0];
 				}catch(StringIndexOutOfBoundsException e){
 					throw new RefactoringException("Method name format exception");
 				}
@@ -236,11 +238,11 @@ public class ExtractClassRefactoring extends refaco.refactorings.Refactoring {
 									for(int u = 0; u<methods.length;u++){
 										if (methods[u].getElementName().matches(methodName)) 
 										{
-											//match a method with the same number of parameters
-											int nbParam = methods[u].getParameters().length;
-											int nbParamMethod = methodAndParameters.length() - methodAndParameters.replace(",", "").length();
-											if (nbParam==nbParamMethod){
-												//here there is a problem with the parameters as they are not validated and the signature oudl be different
+											//because we have qualified name from padl we clean both arrays
+											String[] paramTypes =getParameterTypesOfActualMethod(methods[u]);
+											String[] tmp_paramTypes =cleanQualifiedName(paramTypes);
+											String[] tmp_parameters =cleanQualifiedName(parameters);
+											if (Arrays.equals(tmp_paramTypes,tmp_parameters)) {
 												method_ = methods[u];
 												methodFound = true;
 												//validate if the method is static
@@ -261,7 +263,7 @@ public class ExtractClassRefactoring extends refaco.refactorings.Refactoring {
 													changeM.initializeValidationData(monitorM);
 													changeM.perform(monitorM);
 												} 
-												
+
 												else{											
 													// Create the classes needed for apply the refactoring
 													MoveInstanceMethodProcessor processor = new MoveInstanceMethodProcessor(method_, new CodeGenerationSettings());

@@ -30,6 +30,7 @@ import refaco.refactorings.ExtractMethodRefactoring;
 import refaco.refactorings.InlineClassRefactoring;
 import refaco.refactorings.IntroduceParameterObjectRefactoring;
 import refaco.refactorings.MoveMethodRefactoring;
+import refaco.refactorings.Refactoring;
 import refaco.refactorings.RemoveParametersRefactoring;
 import refaco.views.CodeSmellTableView;
 import refaco.views.RefactoringListTableView;
@@ -177,7 +178,7 @@ public class ApplyRefactoringHandler extends AbstractHandler {
 				rpR.apply();
 				break;
 			case MOVE_METHOD:
-				MoveMethodRefactoring mmR = new MoveMethodRefactoring(refactoringData, projectName);
+				Refactoring mmR = new MoveMethodRefactoring(refactoringData, projectName);
 				mmR.apply();	
 						
 				break;

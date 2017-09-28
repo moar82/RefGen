@@ -6,6 +6,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.lang.reflect.InvocationTargetException;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Iterator;
 import java.util.Iterator;
@@ -80,10 +81,18 @@ public class MoveMethodRefactoring extends refaco.refactorings.Refactoring{
 	public void apply() throws RefactoringException {
 		
 		// Get the package and class name (Source)
-		String temp = getRefactoringData().getClassSource();
-		int index = temp.lastIndexOf('.');
-		String packageSourceName = temp.substring(0, index);
-		String classSourceName = temp.substring(index + 1, temp.length());
+		String packageAndClass = getRefactoringData().getClassSource();
+		int index = packageAndClass.lastIndexOf('.');
+		String packageSourceName;
+		String classSourceName;
+		if (index==-1){
+			classSourceName = packageAndClass;
+			packageSourceName = IPackageFragment.DEFAULT_PACKAGE_NAME;
+		}
+		else{
+			packageSourceName = packageAndClass.substring(0, index);
+			classSourceName = packageAndClass.substring(index + 1, packageAndClass.length());	
+		}
 		
 		// Get the method name and parameters
 		String methodAndParameters = getRefactoringData().getMethodTarget();
@@ -96,17 +105,23 @@ public class MoveMethodRefactoring extends refaco.refactorings.Refactoring{
 			}
 			parameters = methodAndParameters.substring(methodAndParameters.indexOf('(') +1,methodAndParameters.indexOf(')')).split(",");
 			if(parameters.length == 1 && parameters[0].length()==0)
-				parameters = null;
+				parameters = new String[0];
 		}catch(StringIndexOutOfBoundsException e){
 			throw new RefactoringException("Method name format exception");
 		}
 		
-		
 		// Get the package and class name (Target)
-		temp = getRefactoringData().getClassTarget();
-		index = temp.lastIndexOf('.');
-		String classTargetName = temp.substring(index + 1, temp.length());
-
+		
+		String classTargetName;
+		packageAndClass = getRefactoringData().getClassTarget();
+		index = packageAndClass.lastIndexOf('.');
+		if (index==-1){
+			classTargetName = packageAndClass;
+		}
+		else{
+			classTargetName = packageAndClass.substring(index + 1, packageAndClass.length());	
+		}
+		
 		// Get the IProject from the projectName
 		IWorkspace workspace = ResourcesPlugin.getWorkspace();
 		IWorkspaceRoot root = workspace.getRoot();
@@ -135,9 +150,15 @@ public class MoveMethodRefactoring extends refaco.refactorings.Refactoring{
 				int i = 0;
 				while(method == null && i < methods.length){
 					IMethod me = methods[i];
-					if (me.getElementName().equals(methodName) && (parameters == null && me.getNumberOfParameters()==0)
-							|| (parameters!=null && me.getNumberOfParameters() == parameters.length)) {
-						method = me;
+					String[] paramTypes =getParameterTypesOfActualMethod(me);
+					if (me.getElementName().equals(methodName)){
+						//because we have qualified name from padl we clean both arrays
+						String[] tmp_paramTypes =cleanQualifiedName(paramTypes);
+						String[] tmp_parameters =cleanQualifiedName(parameters);
+						
+						if  (Arrays.equals(tmp_paramTypes,tmp_parameters)) {
+							method = me;
+						}
 					}
 					i++;
 				}
@@ -177,12 +198,18 @@ public class MoveMethodRefactoring extends refaco.refactorings.Refactoring{
 							change.perform(monitor);
 							//in visual studio code the part missing
 						}
-						else{saved.saving("MoveMethodRefactoring", "cannot be moved cause the argument is null or"
-								+ " is a inner class method.");}
-							//TODO LOG ERROR OF REFACTORING THAT COULD NOT BE APPLIED
+						else{final String messageError = "cannot be moved cause target class is not valid for "
+									+ "Eclipse.\nSource method:"+getRefactoringData().getClassSource()+
+									"."+methodAndParameters+"\tTarget class:"+packageAndClass;
+						saved.saving("MoveMethodRefactoring", messageError);
+						System.out.println(messageError);
+						}
 							
 					} else {
-						throw new RefactoringException("Method not exist");
+						final String messageError = "Cannot find Source method:"+getRefactoringData().getClassSource()+
+								"."+methodAndParameters+"\tTarget class:"+packageAndClass;
+					saved.saving("MoveMethodRefactoring", messageError);
+					System.out.println(messageError);
 					}
 				} else {
 					System.err.println("Nature disabled");

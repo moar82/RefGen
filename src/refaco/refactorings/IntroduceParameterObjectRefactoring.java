@@ -1,6 +1,6 @@
 package refaco.refactorings;
 
-import java.lang.reflect.InvocationTargetException;
+import java.util.Arrays;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IWorkspace;
@@ -18,11 +18,8 @@ import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.Signature;
-import org.eclipse.jdt.core.dom.AST;
-import org.eclipse.jdt.core.dom.ASTParser;
 import org.eclipse.jdt.core.refactoring.IJavaRefactorings;
 import org.eclipse.jdt.core.refactoring.descriptors.IntroduceParameterObjectDescriptor;
-import org.eclipse.jdt.core.refactoring.descriptors.MoveMethodDescriptor;
 import org.eclipse.jdt.internal.corext.refactoring.structure.IntroduceParameterObjectProcessor;
 import org.eclipse.jdt.internal.ui.refactoring.IntroduceParameterObjectWizard;
 import org.eclipse.ltk.core.refactoring.Change;
@@ -32,7 +29,6 @@ import org.eclipse.ltk.core.refactoring.RefactoringCore;
 import org.eclipse.ltk.core.refactoring.RefactoringStatus;
 import org.eclipse.ltk.core.refactoring.participants.ProcessorBasedRefactoring;
 import org.eclipse.ltk.ui.refactoring.RefactoringWizardOpenOperation;
-import org.eclipse.swt.widgets.Display;
 import refaco.RefactoringData;
 import refaco.exceptions.RefactoringException;
 import refaco.handlers.CodeSmellHandler;
@@ -90,6 +86,8 @@ public class IntroduceParameterObjectRefactoring extends refaco.refactorings.Ref
 				parametersTypes[i] = Signature.getSimpleName(parameters[i].replaceAll("\\s",""));
 				parametersTypes[i] = Signature.createTypeSignature(parametersTypes[i], false);
 			}
+			if(parameters.length == 1 && parameters[0].length()==0)
+				parameters = new String[0];
 
 			// Get the IProject from the projectName
 			IWorkspace workspace = ResourcesPlugin.getWorkspace();
@@ -115,8 +113,14 @@ public class IntroduceParameterObjectRefactoring extends refaco.refactorings.Ref
 						int i = 0;
 						while(method == null && i < methods.length){
 							IMethod me = methods[i];
-							if (me.getElementName().equals(methodName) && me.getNumberOfParameters() == parametersTypes.length) {
-								method = me;
+							String[] paramTypes =getParameterTypesOfActualMethod(me);
+							if (me.getElementName().equals(methodName)){
+								//because we have qualified name from padl we clean both arrays
+								String[] tmp_paramTypes =cleanQualifiedName(paramTypes);
+								String[] tmp_parameters =cleanQualifiedName(parameters);
+								if  (Arrays.equals(tmp_paramTypes,tmp_parameters)) {
+									method = me;
+								}
 							}
 							i++;
 						}
@@ -163,10 +167,10 @@ public class IntroduceParameterObjectRefactoring extends refaco.refactorings.Ref
 						} catch (OperationCanceledException  | NullPointerException e) {
 							//e.printStackTrace();
 							saved.saving("IntroduceParameterObjectRefactoring", e.toString()+"\n"
-									+ "src: "+packageAndClass+" method name:" + methodName );
+									+ " when applying IPO, src: "+packageAndClass+" method name:" + methodName );
 						}
 
-					} else{saved.saving("IntroduceParameterObjectRefactoring", "cannot be applied cause the argument is null "+
+					} else{saved.saving("IntroduceParameterObjectRefactoring", "cannot be applied cause the method could not be found in the model "+
 							"src: "+packageAndClass+" method name:" + methodName );
 					}
 				} else {

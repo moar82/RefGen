@@ -5,6 +5,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.ui.part.*;
 import refaco.ProjectData;
 import refaco.TextColumn;
+import refaco.refactorings.Refactoring;
 
 import org.eclipse.jface.viewers.*;
 import java.util.List;
@@ -141,6 +142,8 @@ public class CodeSmellTableView extends ViewPart {
 					iPackageFragment.getJavaProject().getResource().getLocationURI().getPath(),
 					iPackageFragment.getElementName());
 		}
+		
+		Refactoring.setPath(res.getPath()+"/refgen/");
 		return res;
 	}
 	
