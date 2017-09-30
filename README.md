@@ -27,7 +27,7 @@ RefGen implements "RePOR", which is an automatic refactoring approach generated 
 RePOR is an automatic approach based on Partial Order reduction to automatically detect, generate  and schedule refactoring operations, reducing the search effort (measured in time and number of evaluations) required, compared to state-of the art metaheuristics like Genetic Algorithm and Ant Colony.
 The detection of anti-patterns is based on [DECOR](http://ieeexplore.ieee.org/abstract/document/5196681/),  and implemented using the set of tools provided by [Ptidej tool suite](http://wiki.ptidej.net/).
 
- So far, RefGen supports the refactoring of five anti-patterns[http://www.swat.polymtl.ca/rmorales/Antipatterns_definitions.html], namely Blob, Lazy Class, Long-parameter list, spaghetti code, and Speculative Generality.
+ So far, RefGen supports the refactoring of five [anti-patterns](http://www.swat.polymtl.ca/rmorales/Antipatterns_definitions.html), namely Blob, Lazy Class, Long-parameter list, spaghetti code, and Speculative Generality.
  
  
  
