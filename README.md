@@ -30,4 +30,26 @@ The detection of anti-patterns is based on [DECOR](http://ieeexplore.ieee.org/ab
  So far, RefGen supports the refactoring of five [anti-patterns](http://www.swat.polymtl.ca/rmorales/Antipatterns_definitions.html), namely Blob, Lazy Class, Long-parameter list, spaghetti code, and Speculative Generality.
  
  
+#  Research.
+ 
+ Here is the list of our related research work about automatic refactoring of anti-patterns.
+ 
+- Morales, R., Sabane, A., Musavi, P., Khomh, F., Chicano, F., & Antoniol, G. (2016, 14-18 March 2016). Finding the Best Compromise Between Design Quality and Testing Effort During Refactoring. Paper presented at the 2016 IEEE 23rd International Conference on Software Analysis, Evolution, and Reengineering (SANER).
+[DOI](https://doi.org/10.1109/SANER.2016.23)
+ 
+- Morales, R., Soh, Z., Khomh, F., Antoniol, G., & Chicano, F. On the use of developers’ context for automatic refactoring of software anti-patterns. Volume 128, 2017, Pages 236-251, ISSN 0164-1212, Journal of Systems and Software. 
+[DOI](https://doi.org/10.1016/j.jss.2016.05.042)
+
+- Morales, R., Chicano, F., Khomh, F. et al. Exact search-space size for the refactoring scheduling problem.  Autom Softw Eng (2017). 
+ [DOI](https://doi.org/10.1007/s10515-017-0213-6)
+ 
+- Morales, R., Saborido, R.,  Khomh, F., F., Chicano, F., & Antoniol, G, "EARMO: An Energy-Aware Refactoring Approach for Mobile Apps," in IEEE Transactions on Software Engineering, vol. PP, no. 99, pp. 1-1.
+[doi](https://doi.org/10.1109/TSE.2017.2757486)
+
+
+ If you plan to use RefGen in your research, please cite at least one of the aforementioned papers.
+ 
+ 
+ 
+ 
  
