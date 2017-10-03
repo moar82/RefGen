@@ -399,12 +399,7 @@ public class CollapseHierarchyRefactoring extends refaco.refactorings.Refactorin
 	
 		}
 
-		void setSuperClass(TypeDeclaration typeDecl, String qualifiedName) {
-		    AST ast = typeDecl.getAST();
-		    Name name = ast.newName(qualifiedName);
-		    Type type = ast.newSimpleType(name);
-		    typeDecl.setSuperclassType(type);
-		}
+		
 		public static String[] combineString(String[] first, String[] second){
 	        int length = first.length + second.length;
 	        String[] result = new String[length];

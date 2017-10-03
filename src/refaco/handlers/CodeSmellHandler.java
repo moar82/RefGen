@@ -347,7 +347,7 @@ public class CodeSmellHandler extends AbstractHandler {
 		according to the selection of the user.*/
 		List<String> lines = null;
 		org.eclipse.core.runtime.Path pathConfigFile = new org.eclipse.core.runtime.Path("/config.prop");
-		URL fileURL2 = FileLocator.find(Platform.getBundle("RefACo"), pathConfigFile, null);
+		URL fileURL2 = FileLocator.find(Platform.getBundle("RefGen"), pathConfigFile, null);
 		if (fileURL2!=null){
 			String relativePath = FileLocator.resolve(fileURL2).getPath();
 			String absolutePath =new java.io.File(relativePath).getAbsoluteFile().toString();
@@ -381,7 +381,7 @@ public class CodeSmellHandler extends AbstractHandler {
 
 		// copy ReACO library to file 
 		org.eclipse.core.runtime.Path path2 = new org.eclipse.core.runtime.Path("/lib/RefGen.jar");
-		URL fileURL = FileLocator.find(Platform.getBundle("RefACo"), path2, null);
+		URL fileURL = FileLocator.find(Platform.getBundle("RefGen"), path2, null);
 		InputStream is = fileURL.openStream();
 		OutputStream os = new FileOutputStream(path + "/refgen/RefGen.jar");
 		copyResourcetoPath(is, os);

@@ -83,7 +83,7 @@
             <command
                   commandId="refaco.command.showRefactoringOpps"
                   icon="icons/ant.png"
-                  tooltip="Show Refactoring opportunities list"
+                  tooltip="Show Refactoring Sequence"
                   id="refaco.toolbars.ShowRefactoringList">
             </command>
       </menuContribution>
