@@ -82,7 +82,7 @@
       <menuContribution locationURI="toolbar:refaco.views.CodeSmellTableView?after=additions">
             <command
                   commandId="refaco.command.showRefactoringOpps"
-                  icon="icons/ant.png"
+                  icon="icons/encrage.ico"
                   tooltip="Show Refactoring opportunities list"
                   id="refaco.toolbars.ShowRefactoringList">
             </command>
