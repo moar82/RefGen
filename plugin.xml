@@ -12,7 +12,7 @@
             class="refaco.views.CodeSmellTableView"
             icon="icons/main.png"
             id="refaco.views.CodeSmellTableView"
-            name="Code Smell">
+            name="Anti-patterns">
       </view>
       <view
             category="RefACo"
@@ -44,16 +44,16 @@
    
    <extension point="org.eclipse.ui.commands">
    		<command name="Analize"
-   			description="Analize the project selected finding code smells"
+   			description="Detect anti-patterns in the selected project "
    			id="refaco.command.analize"/>
    		<command name="ShowRefactoringOpps"
    			description="Show Refactoring opportunities list"
    			id="refaco.command.showRefactoringOpps"/>
    		<command name="ApplyRefactoringList"
-   			description="Apply the sequence of refactoring selected"
+   			description="Apply the sequence of refactorings selected"
    			id="refaco.command.applyRefactoring"/>
    		<command name="SelectAll"
-   			description="Select / Deselect all the implemented refactorings"
+   			description="Select / Deselect all the refactoring candidates"
    			id="refaco.command.selectAll"/>
    </extension>
    
@@ -74,7 +74,7 @@
             <command
                   commandId="refaco.command.analize"
                   icon="icons/analyze.png"
-                  tooltip="Analyze Code Smells"
+                  tooltip="Detect Anti-patterns"
                   id="refaco.toolbars.Analize">
             </command>
          </toolbar>
@@ -83,7 +83,7 @@
             <command
                   commandId="refaco.command.showRefactoringOpps"
                   icon="icons/encrage.ico"
-                  tooltip="Show Refactoring opportunities list"
+                  tooltip="Show Refactoring Sequence"
                   id="refaco.toolbars.ShowRefactoringList">
             </command>
       </menuContribution>
@@ -115,7 +115,7 @@
 		     <command
                   commandId="refaco.command.analize"
                   icon="icons/analyze.png"
-                  label="Analyze Code Smells"
+                  label="Detect Anti-patternss"
 	           	  style="push">
             </command>
 	     

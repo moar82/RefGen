@@ -1,11 +1,9 @@
 package refaco.refactorings;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
@@ -28,11 +26,9 @@ import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTParser;
 import org.eclipse.jdt.core.dom.ASTVisitor;
 import org.eclipse.jdt.core.dom.CompilationUnit;
-import org.eclipse.jdt.core.dom.ImportDeclaration;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
 import org.eclipse.jdt.core.dom.MethodInvocation;
-import org.eclipse.jdt.core.dom.Name;
-import org.eclipse.jdt.core.dom.Type;
+import org.eclipse.jdt.core.dom.PackageDeclaration;
 import org.eclipse.jdt.core.dom.TypeDeclaration;
 import org.eclipse.jdt.core.dom.rewrite.ASTRewrite;
 import org.eclipse.jdt.core.refactoring.IJavaRefactorings;
@@ -57,8 +53,6 @@ import refaco.utils.CHtypeVisitor;
  *
  */
 public class CollapseHierarchyRefactoring extends refaco.refactorings.Refactoring {
-
-
 	IMember[] members;
 	IJavaElement[] javaElements;
 	IJavaElement[] targetJavaElements;
@@ -73,13 +67,11 @@ public class CollapseHierarchyRefactoring extends refaco.refactorings.Refactorin
 	}
 
 		public void apply() throws RefactoringException {
-	
 			// Get the package and class name (Source)
 			String temp = getRefactoringData().getClassTarget();
 			int index = temp.lastIndexOf('.');
 			String packageSourceName = temp.substring(0, index);
 			String classSourceName = temp.substring(index + 1, temp.length());
-	
 			// Get the package and class name (Target)
 			String tempT = getRefactoringData().getClassSource();
 			index = tempT.lastIndexOf('.');
@@ -99,7 +91,6 @@ public class CollapseHierarchyRefactoring extends refaco.refactorings.Refactorin
 					IPackageFragment classPackage = rootpackage.getPackageFragment(packageSourceName);
 					ICompilationUnit classCU = classPackage.getCompilationUnit(classSourceName + ".java");						
 					IType typeSource = classCU.getType(classSourceName);
-					
 					// Get the Class Target
 					IPackageFragment classTargetPackage = rootpackage.getPackageFragment(packageTargetName);
 					ICompilationUnit classTargetCU = classTargetPackage.getCompilationUnit(classTargetName + ".java");
@@ -112,9 +103,14 @@ public class CollapseHierarchyRefactoring extends refaco.refactorings.Refactorin
 						parserTarget.setResolveBindings(true); // we need bindings later on
 						final CompilationUnit cuTarget = (CompilationUnit) parserTarget.createAST(null);
 						cuTarget.accept(new ASTVisitor() {
+							
+							@Override
+							public void endVisit(PackageDeclaration node) {
+								importValueTarget = node.getRoot().toString();
+							}
 							public boolean visit(MethodDeclaration node)
 							{
-								importValueTarget = node.getRoot().toString();
+								//importValueTarget = node.getRoot().toString();
 
 								try {
 									targetJavaElements = typeTarget.getChildren();
@@ -129,8 +125,6 @@ public class CollapseHierarchyRefactoring extends refaco.refactorings.Refactorin
 									// TODO Auto-generated catch block
 									e.printStackTrace();
 								}
-
-
 								return true;
 							}
 							public boolean visit(MethodInvocation node)
@@ -148,7 +142,6 @@ public class CollapseHierarchyRefactoring extends refaco.refactorings.Refactorin
 									// TODO Auto-generated catch block
 									e.printStackTrace();
 								}
-
 
 								return true;
 							}
@@ -259,13 +252,13 @@ public class CollapseHierarchyRefactoring extends refaco.refactorings.Refactorin
 										// apply the text edits to the compilation unit
 										try {
 											Document documents= new Document(typeDecla.toString());
-											TextEdit res= rewrite.rewriteAST();
-											res.apply(documents);
+											//TextEdit res= rewrite.rewriteAST();
+											//res.apply(documents);
 											classTargetCU.getBuffer().setContents(documents.get());
+											classTargetCU.save(null, true);
+											classTargetCU.reconcile(ICompilationUnit.NO_AST, false, null, null);
 
 										} catch (MalformedTreeException e) {
-											e.printStackTrace();
-										} catch (BadLocationException e) {
 											e.printStackTrace();
 										}
 									}
@@ -278,16 +271,20 @@ public class CollapseHierarchyRefactoring extends refaco.refactorings.Refactorin
 								processor.setDestinationType(typeTarget);
 								RefactoringContribution contribution = RefactoringCore
 										.getRefactoringContribution(IJavaRefactorings.MOVE_METHOD);
-								contribution.createDescriptor();											
+								contribution.createDescriptor();
 								List<String>  parsingImportT = new ArrayList<>();
-								String[] sourceImport =  importValueSource.split(";");
-								String[] targetImport = importValueTarget.split(";");
-								String[] tempo = new String[parsingImportT.size()];
-								for(int t = 0;t<sourceImport.length;++t)
-									if(sourceImport[t].contains("import") || sourceImport[t].contains("package"))
-									{
-										parsingImportT.add(sourceImport[t]);
-									}
+								String[] targetImport = null;
+								if (importValueTarget!=null)
+									targetImport = importValueTarget.split(";");
+								if (importValueSource!=null ){
+									String[] sourceImport =  importValueSource.split(";");
+									for(int t = 0;t<sourceImport.length;++t)
+										if(sourceImport[t].contains("import") )
+										{
+											parsingImportT.add(sourceImport[t]);
+										}
+
+								}
 
 								for (int j = 0; j < field.length ; ++j)
 									if(field[j] !=null)
@@ -296,11 +293,10 @@ public class CollapseHierarchyRefactoring extends refaco.refactorings.Refactorin
 								{
 									if(method[j] !=null )
 									{
-
-										typeTarget.findMethods(method[j]);
-
+										if (targetMethod!=null)
 										for(int r = 0; r < targetMethod.length ; ++r)
-											if( targetMethod[r]!=null && targetMethod[r].getElementName() == method[j].getElementName())
+											if( targetMethod[r]!=null && targetMethod[r].getElementName() == method[j].getElementName()
+												&& targetMethod[r].exists())
 												targetMethod[r].delete(true, monitor);
 
 										method[j].move(typeTarget, null, null, false, monitor);
@@ -309,8 +305,11 @@ public class CollapseHierarchyRefactoring extends refaco.refactorings.Refactorin
 									
 								}
 
-								tempo=parsingImportT.toArray(new String[0]);
-								targetImport = combineString(tempo,targetImport);
+								String[] tempo=parsingImportT.toArray(new String[0]);
+								if (targetImport!=null)
+									targetImport = combineString(tempo,targetImport);
+								else
+									targetImport=tempo;
 								for(int i = 0;i<targetImport.length;++i)
 								{
 									if(targetImport[i].contains("package"))
@@ -332,7 +331,6 @@ public class CollapseHierarchyRefactoring extends refaco.refactorings.Refactorin
 						        for (IPackageFragment mypackage : packages) {
 						            if (mypackage.getKind() == IPackageFragmentRoot.K_SOURCE) {
 						            	for (ICompilationUnit unit : mypackage.getCompilationUnits()) {
-
 						            		ASTParser parserClassChanged = ASTParser.newParser(AST.JLS8);
 						            		parserClassChanged.setSource(unit);
 						            		parserClassChanged.setKind(ASTParser.K_COMPILATION_UNIT);
@@ -364,6 +362,8 @@ public class CollapseHierarchyRefactoring extends refaco.refactorings.Refactorin
 						            				}
 							            			if(!parentFound)
 							            				unit.createImport(tempT, null,monitor);
+							            			unit.save(null, true);
+							            			unit.reconcile(ICompilationUnit.NO_AST,false,null,null);
 						            		}
 						            	}
 
@@ -399,12 +399,7 @@ public class CollapseHierarchyRefactoring extends refaco.refactorings.Refactorin
 	
 		}
 
-		void setSuperClass(TypeDeclaration typeDecl, String qualifiedName) {
-		    AST ast = typeDecl.getAST();
-		    Name name = ast.newName(qualifiedName);
-		    Type type = ast.newSimpleType(name);
-		    typeDecl.setSuperclassType(type);
-		}
+		
 		public static String[] combineString(String[] first, String[] second){
 	        int length = first.length + second.length;
 	        String[] result = new String[length];

@@ -1,10 +1,10 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
-Bundle-Name: RefACo
-Bundle-SymbolicName: RefACo;singleton:=true
+Bundle-Name: RefGen
+Bundle-SymbolicName: RefGen;singleton:=true
 Bundle-Version: 1.0.0.qualifier
 Bundle-Activator: refaco.handlers.Activator
-Bundle-Vendor: RefACo
+Bundle-Vendor: Rodrigo Morales
 Require-Bundle: org.eclipse.ui,
  org.eclipse.core.runtime,
  org.eclipse.core.resources,
