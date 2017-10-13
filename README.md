@@ -39,6 +39,9 @@ Please visit the [wiki](https://github.com/moar82/RefGen/wiki) in this repositor
  
  Here is the list of our related research work about automatic refactoring of anti-patterns that I have done in Polytechnique de Montreal in collaboration with other well known researchers.
  
+- Morales, R. (2015, 2-6 March 2015). Towards a Framework for Automatic Correction of Anti-Patterns. Paper presented at the 2015 IEEE 22nd International Conference on Software Analysis, Evolution, and Reengineering (SANER).
+[DOI](https://doi.org/10.1109/SANER.2015.7081891)
+
 - Morales, R., Sabane, A., Musavi, P., Khomh, F., Chicano, F., & Antoniol, G. (2016, 14-18 March 2016). Finding the Best Compromise Between Design Quality and Testing Effort During Refactoring. Paper presented at the 2016 IEEE 23rd International Conference on Software Analysis, Evolution, and Reengineering (SANER).
 [DOI](https://doi.org/10.1109/SANER.2016.23)
  
