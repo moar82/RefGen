@@ -22,17 +22,19 @@ RefGen Eclipse plug-in
  * All Rights Reserved.
  
 RefGen plug-in is an Eclipse plug-in developed at [Polytechinique de Montreal](http://www.polymtl.ca) for performing automatic refactoring of software anti-patterns by [Christian Kabulo](https://github.com/Espiritous0x01) and [Rodrigo Morales](http://www.swat.polymtl.ca/rmorales/). 
-It is based in "RefACO DEVELOPMENT OF A TOOL FOR AUTOMATIC CODE REFACTORING" by Juan María Frías Hidalgo (University of Malaga) for his MS dissertation.
+It is based on "RefACO DEVELOPMENT OF A TOOL FOR AUTOMATIC CODE REFACTORING" by Juan María Frías Hidalgo (University of Malaga) for his MS dissertation, which uses an early version of Ant Colony Optimization developed by Rodrigo Morales.
 RefGen implements "RePOR", which is an automatic refactoring approach generated at Polytechnique de Montreal by Rodrigo Morales as part of its PhD Thesis.<br>
-RePOR is an automatic approach based on Partial Order reduction to automatically detect, generate  and schedule refactoring operations, reducing the search effort (measured in time and number of evaluations) required, compared to state-of the art metaheuristics like Genetic Algorithm and Ant Colony.
+
+RePOR leverage Partial Order reduction to automatically detect, generate  and schedule refactoring operations, reducing the search effort (measured in time and number of evaluations) required, compared to state-of the art metaheuristics like Genetic Algorithm and Ant Colony. A research paper on RePOR is currently on revision at [Journal of Systems and Software]|(https://www.journals.elsevier.com/journal-of-systems-and-software/).
+
 The detection of anti-patterns is based on [DECOR](http://ieeexplore.ieee.org/abstract/document/5196681/),  and implemented using the set of tools provided by [Ptidej tool suite](http://wiki.ptidej.net/).
 
- So far, RefGen supports the refactoring of five [anti-patterns](http://www.swat.polymtl.ca/rmorales/Antipatterns_definitions.html), namely Blob, Lazy Class, Long-parameter list, spaghetti code, and Speculative Generality.
+So far, RefGen supports the refactoring of five [anti-patterns](http://www.swat.polymtl.ca/rmorales/Antipatterns_definitions.html), namely Blob, Lazy Class, Long-parameter list, spaghetti code, and Speculative Generality.
  
  
 #  Research.
  
- Here is the list of our related research work about automatic refactoring of anti-patterns.
+ Here is the list of our related research work about automatic refactoring of anti-patterns that I have done in Polytechnique de Montreal in collaboration with other well known researchers.
  
 - Morales, R., Sabane, A., Musavi, P., Khomh, F., Chicano, F., & Antoniol, G. (2016, 14-18 March 2016). Finding the Best Compromise Between Design Quality and Testing Effort During Refactoring. Paper presented at the 2016 IEEE 23rd International Conference on Software Analysis, Evolution, and Reengineering (SANER).
 [DOI](https://doi.org/10.1109/SANER.2016.23)
@@ -47,7 +49,7 @@ The detection of anti-patterns is based on [DECOR](http://ieeexplore.ieee.org/ab
 [doi](https://doi.org/10.1109/TSE.2017.2757486)
 
 
- If you plan to use RefGen in your research, please cite at least one of the aforementioned papers.
+ If you plan to use RefGen in your research, please **cite at least one** of the aforementioned papers.
  
  
  
