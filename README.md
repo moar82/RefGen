@@ -21,11 +21,11 @@ RefGen Eclipse plug-in
  * 
  * All Rights Reserved.
  
-RefGen plug-in is an Eclipse plug-in developed at [Polytechinique de Montreal](http://www.polymtl.ca) for performing automatic refactoring of software anti-patterns by [Christian Kabulo](https://github.com/Espiritous0x01) and [Rodrigo Morales](http://www.swat.polymtl.ca/rmorales/). 
-It is based on "RefACO DEVELOPMENT OF A TOOL FOR AUTOMATIC CODE REFACTORING" by Juan María Frías Hidalgo (University of Malaga) for his MS dissertation, which uses an early version of Ant Colony Optimization developed by Rodrigo Morales.
-RefGen implements "RePOR", which is an automatic refactoring approach generated at Polytechnique de Montreal by Rodrigo Morales as part of its PhD Thesis.<br>
+RefGen plug-in is an Eclipse plug-in developed at [Polytechinique de Montreal](http://www.polymtl.ca) for performing automatic refactoring of software anti-patterns by [Christian Kabulo](https://github.com/Espiritous0x01) and [Rodrigo Morales](http://www.swat.polymtl.ca/rmorales/).  The Eclipse plug-in It is based on the MS dissertation titled "RefACO DEVELOPMENT OF A TOOL FOR AUTOMATIC CODE REFACTORING" by Juan María Frías Hidalgo (University of Malaga), which uses an early version of Ant Colony Optimization developed by Rodrigo Morales.
 
-RePOR leverage Partial Order reduction to automatically detect, generate  and schedule refactoring operations, reducing the search effort (measured in time and number of evaluations) required, compared to state-of the art metaheuristics like Genetic Algorithm and Ant Colony. A research paper on RePOR is currently on revision at [Journal of Systems and Software](https://www.journals.elsevier.com/journal-of-systems-and-software/).
+RefGen implements "RePOR", which is an automatic refactoring approach generated at Polytechnique de Montreal by Rodrigo Morales as part of its Ph.D. Thesis.
+
+RePOR leverage Partial Order reduction to automatically detect, generate  and schedule refactoring operations, reducing the search effort (measured in time and number of evaluations) required, compared to state-of the art metaheuristics like Genetic Algorithm and Ant Colony. A research paper on RePOR was submitted to [Journal of Systems and Software](https://www.sciencedirect.com/science/article/pii/S0164121218301523).
 
 The detection of anti-patterns is based on [DECOR](http://ieeexplore.ieee.org/abstract/document/5196681/),  and implemented using the set of tools provided by [Ptidej tool suite](http://wiki.ptidej.net/).
 
@@ -37,7 +37,12 @@ Please visit the [wiki](https://github.com/moar82/RefGen/wiki) in this repositor
  
 #  Research.
  
- Here is the list of our related research work about automatic refactoring of anti-patterns that I have done in Polytechnique de Montreal in collaboration with other well known researchers.
+ If you want to use RefGen in your research, please **cite at least** the following reference:
+ 
+ - Morales, R.; Chicano, F.; Khomh, F.; and Antoniol, G. Efficient Refactoring Scheduling based on Partial order Reduction.  Journal of Systems and Software. 2018
+ [DOI](https://doi.org/10.1016/j.jss.2018.07.076)
+ 
+  Here is the list of  related research work about automatic refactoring of anti-patterns that I have done in Polytechnique de Montreal in collaboration with other well known researchers.  For a complete list of works please visit  my [personal web site] (http://www.swat.polymtl.ca/rmorales/#portfolio)
  
 - Morales, R. (2015, 2-6 March 2015). Towards a Framework for Automatic Correction of Anti-Patterns. Paper presented at the 2015 IEEE 22nd International Conference on Software Analysis, Evolution, and Reengineering (SANER).
 [DOI](https://doi.org/10.1109/SANER.2015.7081891)
@@ -53,11 +58,3 @@ Please visit the [wiki](https://github.com/moar82/RefGen/wiki) in this repositor
  
 - Morales, R., Saborido, R.,  Khomh, F., F., Chicano, F., & Antoniol, G, "EARMO: An Energy-Aware Refactoring Approach for Mobile Apps," in IEEE Transactions on Software Engineering, vol. PP, no. 99, pp. 1-1.
 [doi](https://doi.org/10.1109/TSE.2017.2757486)
-
-
- If you plan to use RefGen in your research, please **cite at least one** of the aforementioned papers.
- 
- 
- 
- 
- 
