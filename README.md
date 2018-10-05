@@ -31,7 +31,18 @@ The detection of anti-patterns is based on [DECOR](http://ieeexplore.ieee.org/ab
 
 So far, RefGen supports the refactoring of five [anti-patterns](http://www.swat.polymtl.ca/rmorales/Antipatterns_definitions.html), namely Blob, Lazy Class, Long-parameter list, spaghetti code, and Speculative Generality.
  
- 
+# Why refactoring and why you should care
+> By continuously improving the design of code, we make it easier and easier to work with. This is in sharp contrast to what typically happens: little refactoring and a great deal of attention paid to expediently adding new features. If you get into the hygienic habit of refactoring continuously, you'll find that it is easier to extend and maintain code.
+> — Joshua Kerievsky, Refactoring to Patterns
+
+Manual refactoring is hard due to:
+* Many options to choose
+* Refactoring solutions can be conflicted, making difficult to decide which refactorings apply and in which order
+
+![img1](http://swat.polymtl.ca/rmorales/many_choices.png "Different possibilities to move a method between two classes in Android app")
+
+For all reasons above we developed an automated approach to refactor a system, requiring a minimal interaction from developer.
+
 # RefGen plug-in installation and tutorial
 Please visit the [wiki](https://github.com/moar82/RefGen/wiki) in this repository for further details.
  
