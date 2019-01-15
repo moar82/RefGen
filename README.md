@@ -21,7 +21,7 @@ RefGen Eclipse plug-in
  * 
  * All Rights Reserved.
  
-RefGen plug-in is an Eclipse plug-in developed at [Polytechinique de Montreal](http://www.polymtl.ca) for performing automatic refactoring of software anti-patterns by [Christian Kabulo](https://github.com/Espiritous0x01) and [Rodrigo Morales](http://www.swat.polymtl.ca/rmorales/).  The Eclipse plug-in It is based on the MS dissertation titled "RefACO DEVELOPMENT OF A TOOL FOR AUTOMATIC CODE REFACTORING" by Juan María Frías Hidalgo (University of Malaga), which uses an early version of Ant Colony Optimization developed by Rodrigo Morales.
+RefGen plug-in is an Eclipse plug-in developed at [Polytechinique de Montreal](http://www.polymtl.ca) for performing automatic refactoring of software anti-patterns by [Christian Kabulo](https://github.com/cypherkhris) and [Rodrigo Morales](http://www.swat.polymtl.ca/rmorales/).  The Eclipse plug-in It is based on the MS dissertation titled "RefACO DEVELOPMENT OF A TOOL FOR AUTOMATIC CODE REFACTORING" by Juan María Frías Hidalgo (University of Malaga), which uses an early version of Ant Colony Optimization developed by Rodrigo Morales.
 
 RefGen implements "RePOR", which is an automatic refactoring approach generated at Polytechnique de Montreal by Rodrigo Morales as part of its Ph.D. Thesis.
 
