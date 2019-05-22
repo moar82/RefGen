@@ -56,7 +56,7 @@ In addition, you can run RefGen in *simulation mode* (applying refactoring to an
  - Morales, R.; Chicano, F.; Khomh, F.; and Antoniol, G. Efficient Refactoring Scheduling based on Partial order Reduction.  Journal of Systems and Software. 2018
  [DOI](https://doi.org/10.1016/j.jss.2018.07.076)
  
-  Here is the list of  related research work about automatic refactoring of anti-patterns that I have done in Polytechnique de Montreal in collaboration with other well known researchers.  For a complete list of works please visit my [personal web site] (https://moar82.github.io/#portfolio)
+  Here is the list of  related research work about automatic refactoring of anti-patterns that I have done in Polytechnique de Montreal in collaboration with other well known researchers.  For a complete list of works please visit my [personal web site](https://moar82.github.io/#portfolio)
  
 - Morales, R. (2015, 2-6 March 2015). Towards a Framework for Automatic Correction of Anti-Patterns. Paper presented at the 2015 IEEE 22nd International Conference on Software Analysis, Evolution, and Reengineering (SANER).
 [DOI](https://doi.org/10.1109/SANER.2015.7081891)
