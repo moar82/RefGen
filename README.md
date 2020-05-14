@@ -52,7 +52,7 @@ To investigate whether automated refactoring tools affect the understandability 
 
 # RefGen plug-in installation and tutorial
 Please visit the [wiki](https://github.com/moar82/RefGen/wiki) in this repository for further details.
-In addition, you can run RefGen in *simulation mode* (applying refactoring to an abstract model, without modifying your code) to test our tool. [wiki](https://github.com/moar82/RefGen/wiki/Simulation-Mode-of-RefGen).
+In addition, you can run RefGen in *simulation mode* (applying refactoring to an abstract model, without modifying your code) to test our tool. 
 
 **Do not forget to fork our repository to have the latest updates**
  
